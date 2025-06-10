@@ -1,4 +1,6 @@
-import { AppSidebar } from "@/components/app-sidebar"
+"use client";
+
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,20 +8,30 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-export default function Page() {
+// Import dashboard components
+import { DashboardOverviewCards } from "@/components/dashboard/overview-cards";
+import { GuardianActivityFeed } from "@/components/dashboard/activity-feed";
+import { SystemHealthWidget } from "@/components/dashboard/system-health";
+import { VotingStatusBoard } from "@/components/dashboard/voting-status";
+import { AgentOrchestrationPanel } from "@/components/dashboard/agent-orchestration";
+import { FraudSentinelMonitor } from "@/components/dashboard/fraud-sentinel";
+import { RealTimeMetrics } from "@/components/dashboard/realtime-metrics";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+
+export default function DashboardPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <SidebarTrigger className="-ml-1" />
           <Separator
             orientation="vertical"
@@ -28,26 +40,53 @@ export default function Page() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">
-                  Building Your Application
+                <BreadcrumbLink href="/dashboard">
+                  GuardianOS
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                <BreadcrumbPage>Dashboard Overview</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
+        
+        <div className="flex flex-1 flex-col gap-6 p-6 bg-gradient-to-br from-background to-muted/20">
+          {/* Overview Cards */}
+          <DashboardOverviewCards />
+          
+          {/* Main Dashboard Grid */}
+          <div className="grid gap-6 lg:grid-cols-12">
+            {/* Left Column - Primary Content */}
+            <div className="lg:col-span-8 space-y-6">
+              {/* System Health & Real-time Metrics */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <SystemHealthWidget />
+                <RealTimeMetrics />
+              </div>
+              
+              {/* Voting Status Board */}
+              <VotingStatusBoard />
+              
+              {/* Agent Orchestration Panel */}
+              <AgentOrchestrationPanel />
+              
+              {/* FraudSentinel Monitor */}
+              <FraudSentinelMonitor />
+            </div>
+            
+            {/* Right Column - Secondary Content */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Quick Actions */}
+              <QuickActions />
+              
+              {/* Activity Feed */}
+              <GuardianActivityFeed />
+            </div>
           </div>
-          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
