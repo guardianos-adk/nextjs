@@ -9,6 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import {
+  InfoCard,
+  InfoCardTitle,
+  InfoCardDescription,
+  InfoCardContent,
+  InfoCardFooter
+} from "@/components/ui/info-card";
 
 interface SlideProps {
   children: React.ReactNode;
@@ -29,7 +36,7 @@ function Slide({ children, className }: SlideProps) {
     >
       {/* Logo Header */}
       <div className="guardianos-slide-header absolute top-6 right-6 z-50 flex items-center gap-3">
-        <div className="relative h-8">
+        <div className="relative h-8 w-8 flex items-center justify-center">
           <Image
             src="/logo.png"
             alt="GuardianOS Logo"
@@ -38,7 +45,7 @@ function Slide({ children, className }: SlideProps) {
             className="object-contain"
           />
         </div>
-        <div className="relative h-8">
+        <div className="relative h-8 flex items-center justify-center">
           <Image
             src="/guardianos.png"
             alt="GuardianOS"
@@ -67,8 +74,8 @@ function TitleSlide() {
           transition={{ delay: 0.2, duration: 0.8 }}
           className="space-y-6"
         >
-          <div className="flex items-center justify-center mb-8">
-            <div className="relative h-20 mr-6">
+          <div className="flex items-center justify-center mb-8 gap-6">
+            <div className="relative h-20 w-20 flex items-center justify-center">
               <Image
                 src="/logo.png"
                 alt="GuardianOS Logo"
@@ -77,7 +84,7 @@ function TitleSlide() {
                 className="object-contain"
               />
             </div>
-            <div className="relative h-20">
+            <div className="relative h-20 flex items-center justify-center">
               <Image
                 src="/guardianos.png"
                 alt="GuardianOS"
@@ -151,50 +158,77 @@ function ProblemSlide() {
             transition={{ delay: 0.4, duration: 0.8 }}
             className="space-y-8"
           >
-            <Card className="guardianos-slide-card border-l-4 border-l-red-500 bg-red-50/50">
-              <CardHeader>
-                <CardTitle className="text-red-700 flex items-center gap-2">
-                  <Target className="h-5 w-5" />
+            <InfoCard className="bg-gradient-to-br from-red-50/80 to-red-100/40 hover:shadow-lg hover:shadow-red-500/20 transition-all duration-300">
+              <InfoCardContent>
+                <InfoCardTitle className="text-red-700 flex items-center gap-3 text-lg font-semibold mb-3">
+                  <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                    <Target className="h-5 w-5 text-red-500" />
+                  </div>
                   Compliance Complexity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-red-600">
+                </InfoCardTitle>
+                <InfoCardDescription className="text-red-600 leading-relaxed text-sm">
                   Multiple jurisdictions, varying regulations, and manual processes create 
                   compliance bottlenecks that delay blockchain adoption.
-                </p>
-              </CardContent>
-            </Card>
+                </InfoCardDescription>
+              </InfoCardContent>
+              <InfoCardFooter className="mt-4">
+                <div className="flex items-center gap-2 text-xs text-red-500">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  Critical Issue
+                </div>
+                <div className="text-xs text-red-400">
+                  High Impact
+                </div>
+              </InfoCardFooter>
+            </InfoCard>
 
-            <Card className="guardianos-slide-card border-l-4 border-l-amber-500 bg-amber-50/50">
-              <CardHeader>
-                <CardTitle className="text-amber-700 flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
+            <InfoCard className="bg-gradient-to-br from-amber-50/80 to-amber-100/40 hover:shadow-lg hover:shadow-amber-500/20 transition-all duration-300">
+              <InfoCardContent>
+                <InfoCardTitle className="text-amber-700 flex items-center gap-3 text-lg font-semibold mb-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <Eye className="h-5 w-5 text-amber-500" />
+                  </div>
                   Privacy vs. Oversight
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-amber-600">
-                  Institutions need blockchain privacy for competitive advantage while 
-                  regulators require transparency for compliance monitoring.
-                </p>
-              </CardContent>
-            </Card>
+                </InfoCardTitle>
+                <InfoCardDescription className="text-amber-600 leading-relaxed text-sm">
+                  Institutions need blockchain privacy for competitive advantage while regulators 
+                  require transparency for compliance monitoring.
+                </InfoCardDescription>
+              </InfoCardContent>
+              <InfoCardFooter className="mt-4">
+                <div className="flex items-center gap-2 text-xs text-amber-500">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  Balance Required
+                </div>
+                <div className="text-xs text-amber-400">
+                  Tension Point
+                </div>
+              </InfoCardFooter>
+            </InfoCard>
 
-            <Card className="guardianos-slide-card border-l-4 border-l-blue-500 bg-blue-50/50">
-              <CardHeader>
-                <CardTitle className="text-blue-700 flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
+            <InfoCard className="bg-gradient-to-br from-blue-50/80 to-blue-100/40 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
+              <InfoCardContent>
+                <InfoCardTitle className="text-blue-700 flex items-center gap-3 text-lg font-semibold mb-3">
+                  <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <Globe className="h-5 w-5 text-blue-500" />
+                  </div>
                   Cross-Border Coordination
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-blue-600">
+                </InfoCardTitle>
+                <InfoCardDescription className="text-blue-600 leading-relaxed text-sm">
                   Global transactions require coordination between multiple regulatory 
                   bodies without standardized protocols.
-                </p>
-              </CardContent>
-            </Card>
+                </InfoCardDescription>
+              </InfoCardContent>
+              <InfoCardFooter className="mt-4">
+                <div className="flex items-center gap-2 text-xs text-blue-500">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  Coordination Gap
+                </div>
+                <div className="text-xs text-blue-400">
+                  Multi-jurisdiction
+                </div>
+              </InfoCardFooter>
+            </InfoCard>
           </motion.div>
 
           <motion.div
@@ -797,50 +831,77 @@ function ImpactSlide() {
             transition={{ delay: 0.6, duration: 0.8 }}
             className="space-y-6"
           >
-            <Card className="guardianos-slide-card border-l-4 border-l-emerald-500 bg-emerald-50/50">
-              <CardHeader>
-                <CardTitle className="text-emerald-700 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5" />
+            <InfoCard className="border-l-4 border-l-emerald-500 bg-gradient-to-br from-emerald-50/80 to-emerald-100/40 hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-300">
+              <InfoCardContent>
+                <InfoCardTitle className="text-emerald-700 flex items-center gap-3 text-lg font-semibold mb-3">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <CheckCircle className="h-5 w-5 text-emerald-500" />
+                  </div>
                   Enhanced Privacy Protection
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-emerald-600">
+                </InfoCardTitle>
+                <InfoCardDescription className="text-emerald-600 leading-relaxed text-sm">
                   Zero-knowledge proofs and selective disclosure ensure user privacy 
                   while meeting regulatory requirements.
-                </p>
-              </CardContent>
-            </Card>
+                </InfoCardDescription>
+              </InfoCardContent>
+              <InfoCardFooter className="mt-4">
+                <div className="flex items-center gap-2 text-xs text-emerald-500">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Privacy First
+                </div>
+                <div className="text-xs text-emerald-400">
+                  ZK Proofs
+                </div>
+              </InfoCardFooter>
+            </InfoCard>
 
-            <Card className="guardianos-slide-card border-l-4 border-l-blue-500 bg-blue-50/50">
-              <CardHeader>
-                <CardTitle className="text-blue-700 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
+            <InfoCard className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50/80 to-blue-100/40 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
+              <InfoCardContent>
+                <InfoCardTitle className="text-blue-700 flex items-center gap-3 text-lg font-semibold mb-3">
+                  <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <TrendingUp className="h-5 w-5 text-blue-500" />
+                  </div>
                   Accelerated Adoption
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-blue-600">
+                </InfoCardTitle>
+                <InfoCardDescription className="text-blue-600 leading-relaxed text-sm">
                   Automated compliance workflows remove barriers to institutional 
                   blockchain adoption and innovation.
-                </p>
-              </CardContent>
-            </Card>
+                </InfoCardDescription>
+              </InfoCardContent>
+              <InfoCardFooter className="mt-4">
+                <div className="flex items-center gap-2 text-xs text-blue-500">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  Faster Adoption
+                </div>
+                <div className="text-xs text-blue-400">
+                  Automated
+                </div>
+              </InfoCardFooter>
+            </InfoCard>
 
-            <Card className="guardianos-slide-card border-l-4 border-l-purple-500 bg-purple-50/50">
-              <CardHeader>
-                <CardTitle className="text-purple-700 flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
+            <InfoCard className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50/80 to-purple-100/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300">
+              <InfoCardContent>
+                <InfoCardTitle className="text-purple-700 flex items-center gap-3 text-lg font-semibold mb-3">
+                  <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                    <Globe className="h-5 w-5 text-purple-500" />
+                  </div>
                   Global Standardization
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-purple-600">
+                </InfoCardTitle>
+                <InfoCardDescription className="text-purple-600 leading-relaxed text-sm">
                   Unified compliance protocols enable seamless cross-border 
                   transactions and regulatory cooperation.
-                </p>
-              </CardContent>
-            </Card>
+                </InfoCardDescription>
+              </InfoCardContent>
+              <InfoCardFooter className="mt-4">
+                <div className="flex items-center gap-2 text-xs text-purple-500">
+                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                  Global Scale
+                </div>
+                <div className="text-xs text-purple-400">
+                  Unified Standards
+                </div>
+              </InfoCardFooter>
+            </InfoCard>
           </motion.div>
         </div>
 

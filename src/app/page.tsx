@@ -13,8 +13,6 @@ import {
   Globe, 
   TrendingUp, 
   CheckCircle, 
-  ArrowRight, 
-  Activity,
   Target,
   Play,
   ChevronDown,
@@ -25,12 +23,18 @@ import {
   Bot,
   Network
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import {
+  InfoCard,
+  InfoCardTitle,
+  InfoCardDescription,
+  InfoCardContent,
+  InfoCardFooter
+} from "@/components/ui/info-card";
 
 interface MetricCardProps {
   title: string;
@@ -41,13 +45,7 @@ interface MetricCardProps {
   description: string;
 }
 
-interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  badge?: string;
-  gradient: string;
-}
+
 
 interface TestimonialProps {
   quote: string;
@@ -103,33 +101,7 @@ function MetricCard({ title, value, change, trend, icon, description }: MetricCa
   );
 }
 
-function FeatureCard({ icon, title, description, badge, gradient }: FeatureCardProps) {
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.3 }}
-    >
-      <Card className={cn("h-full border-border/50 hover:shadow-xl transition-all duration-300", gradient)}>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 bg-background/50 rounded-xl flex items-center justify-center backdrop-blur-sm">
-              {icon}
-            </div>
-            {badge && (
-              <Badge variant="secondary" className="text-xs bg-background/50 backdrop-blur-sm">
-                {badge}
-              </Badge>
-            )}
-          </div>
-          <CardTitle className="text-xl font-semibold">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground leading-relaxed">{description}</p>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
+
 
 function TestimonialCard({ quote, author, title, company }: TestimonialProps) {
   return (
@@ -142,7 +114,7 @@ function TestimonialCard({ quote, author, title, company }: TestimonialProps) {
             ))}
           </div>
           <blockquote className="text-foreground leading-relaxed italic">
-            "{quote}"
+            &ldquo;{quote}&rdquo;
           </blockquote>
           <div className="border-t border-border/50 pt-4">
             <div className="font-semibold text-foreground">{author}</div>
@@ -179,43 +151,13 @@ function AnimatedCounter({ end, duration = 2000, suffix = "" }: { end: number; d
 }
 
 export default function HomePage() {
-  const [activeFeature, setActiveFeature] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const features = [
-    {
-      icon: <Vote className="h-6 w-6 text-primary" />,
-      title: "Guardian Consensus",
-      description: "Multi-jurisdictional guardian network enables democratic consensus for selective de-anonymization requests with cryptographic proof and threshold-based voting.",
-      badge: "Consensus",
-      gradient: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20"
-    },
-    {
-      icon: <Shield className="h-6 w-6 text-emerald-600" />,
-      title: "Privacy-First Design",
-      description: "Zero-knowledge proofs and threshold cryptography ensure user privacy while enabling regulatory compliance when required. Selective disclosure protects uninvolved parties.",
-      badge: "Privacy",
-      gradient: "bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200"
-    },
-    {
-      icon: <Bot className="h-6 w-6 text-blue-600" />,
-      title: "AI-Powered Monitoring",
-      description: "Multi-agent system with Google ADK integration provides intelligent fraud detection, automated compliance workflows, and real-time risk assessment.",
-      badge: "AI Agents",
-      gradient: "bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200"
-    },
-    {
-      icon: <Network className="h-6 w-6 text-purple-600" />,
-      title: "Cross-Border Coordination",
-      description: "Automated coordination across multiple regulatory jurisdictions with standardized protocols for seamless international compliance.",
-      badge: "Global",
-      gradient: "bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200"
-    }
-  ];
+
 
   const metrics = [
     {
@@ -279,8 +221,8 @@ export default function HomePage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative h-8">
+            <div className="flex items-center gap-3">
+              <div className="relative h-8 w-8 flex items-center justify-center">
                 <Image
                   src="/logo.png"
                   alt="GuardianOS Logo"
@@ -289,7 +231,7 @@ export default function HomePage() {
                   className="object-contain"
                 />
               </div>
-              <div className="relative h-8">
+              <div className="relative h-8 flex items-center justify-center">
                 <Image
                   src="/guardianos.png"
                   alt="GuardianOS"
@@ -424,141 +366,320 @@ export default function HomePage() {
       </section>
 
       {/* Problem Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 to-white">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="max-w-6xl mx-auto"
-          >
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-                The Institutional Challenge
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Financial institutions face critical barriers in blockchain adoption due to compliance complexity
-              </p>
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+        transition={{ duration: 0.8, delay: 0.6 }}
+        className="py-24 bg-gradient-to-br from-red-50/50 via-white to-orange-50/30"
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+              The Institutional Challenge
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Financial institutions face critical barriers in blockchain adoption due to compliance complexity
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -30 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              >
+              <Card className="bg-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-red-500/10">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              </div>
+              <div>
+                  <h3 className="text-lg font-semibold text-foreground">$51B Annual Compliance Costs</h3>
+                  <div className="flex items-center gap-4 mt-2">
+                  <div className="flex items-center gap-1 text-xs text-red-500">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      Critical Impact
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                      78% adoption delay
+                  </div>
+                </div>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Multiple jurisdictions, varying regulations, and manual processes create 
+                  compliance bottlenecks that consume massive resources and delay innovation.
+                  </p>
+                  </CardContent>
+              </Card>
+            </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -30 }}
+                transition={{ duration: 0.8, delay: 1.0 }}
+              >
+                <Card className="bg-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-lg bg-amber-500/10">
+                        <Lock className="h-5 w-5 text-amber-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground">Privacy vs. Oversight Dilemma</h3>
+                        <div className="flex items-center gap-4 mt-2">
+                          <div className="flex items-center gap-1 text-xs text-amber-500">
+                            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            Regulatory Tension
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Balance required
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Institutions need blockchain privacy for competitive advantage while regulators 
+                      require transparency for compliance monitoring and oversight.
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -30 }}
+                transition={{ duration: 0.8, delay: 1.2 }}
+              >
+                <InfoCard className="bg-gradient-to-br from-blue-50/80 to-blue-100/40 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
+                  <InfoCardContent>
+                    <InfoCardTitle className="text-blue-700 flex items-center gap-3 text-lg font-semibold mb-3">
+                      <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                        <Globe className="h-5 w-5 text-blue-500" />
+                      </div>
+                      Cross-Border Coordination Gap
+                    </InfoCardTitle>
+                    <InfoCardDescription className="text-blue-600 leading-relaxed text-sm">
+                      Global transactions require coordination between multiple regulatory bodies 
+                      without standardized protocols or automated systems.
+                    </InfoCardDescription>
+                  </InfoCardContent>
+                  <InfoCardFooter className="mt-4">
+                    <div className="flex items-center gap-2 text-xs text-blue-500">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                      Coordination Needed
+                    </div>
+                    <div className="text-xs text-blue-400">
+                      Multi-jurisdiction
+                    </div>
+                  </InfoCardFooter>
+                </InfoCard>
+              </motion.div>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
-                <Card className="border-l-4 border-l-red-500 bg-gradient-to-r from-red-50/50 to-transparent">
-                  <CardHeader>
-                    <CardTitle className="text-red-700 flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5" />
-                      $51B Annual Compliance Costs
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-red-600 leading-relaxed">
-                      Multiple jurisdictions, varying regulations, and manual processes create 
-                      compliance bottlenecks that consume massive resources and delay innovation.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-amber-500 bg-gradient-to-r from-amber-50/50 to-transparent">
-                  <CardHeader>
-                    <CardTitle className="text-amber-700 flex items-center gap-2">
-                      <Lock className="h-5 w-5" />
-                      Privacy vs. Oversight Dilemma
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-amber-600 leading-relaxed">
-                      Institutions need blockchain privacy for competitive advantage while 
-                      regulators require transparency for compliance monitoring and oversight.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50/50 to-transparent">
-                  <CardHeader>
-                    <CardTitle className="text-blue-700 flex items-center gap-2">
-                      <Globe className="h-5 w-5" />
-                      Cross-Border Coordination Gap
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-blue-600 leading-relaxed">
-                      Global transactions require coordination between multiple regulatory 
-                      bodies without standardized protocols or automated systems.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="relative">
-                <Card className="bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300 p-8">
-                  <div className="text-center space-y-6">
-                    <div className="text-5xl font-bold text-gray-600">78%</div>
-                    <div className="text-lg text-gray-700 font-medium">
-                      Of institutions delay blockchain adoption
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : 30 }}
+              transition={{ duration: 0.8, delay: 1.4 }}
+              className="relative"
+            >
+              <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-8 border border-slate-200 shadow-lg">
+                <div className="text-center space-y-6">
+                  <div className="relative">
+                    <div className="text-5xl font-bold text-slate-600 mb-2">78%</div>
+                    <div className="text-lg text-slate-500 mb-4">Of institutions delay blockchain adoption</div>
+                    <div className="w-20 h-1 bg-gradient-to-r from-red-500 to-amber-500 rounded-full mx-auto" />
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-200">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-500">89%</div>
+                      <div className="text-xs text-slate-500">Compliance Uncertainty</div>
                     </div>
-                    <Separator className="my-4" />
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Compliance Uncertainty</span>
-                        <span className="text-sm font-medium text-gray-800">89%</span>
-                      </div>
-                      <Progress value={89} className="h-2" />
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Manual Processes</span>
-                        <span className="text-sm font-medium text-gray-800">76%</span>
-                      </div>
-                      <Progress value={76} className="h-2" />
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Cross-Border Complexity</span>
-                        <span className="text-sm font-medium text-gray-800">82%</span>
-                      </div>
-                      <Progress value={82} className="h-2" />
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-amber-500">76%</div>
+                      <div className="text-xs text-slate-500">Manual Processes</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-500">82%</div>
+                      <div className="text-xs text-slate-500">Cross-Border Complexity</div>
                     </div>
                   </div>
-                </Card>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
-        <div className="container mx-auto px-6">
+      <motion.section
+        id="features"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+        transition={{ duration: 0.8, delay: 1.8 }}
+        className="py-24 bg-gradient-to-br from-primary/5 via-white to-emerald-50/30"
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+              Comprehensive Compliance Platform
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Advanced features designed specifically for institutional blockchain compliance and oversight
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 mb-16 max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
+              transition={{ duration: 0.8, delay: 2.0 }}
+            >
+              <InfoCard className="h-full bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group">
+                <InfoCardContent>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 group-hover:bg-primary/20 transition-colors">
+                      <Vote className="h-6 w-6 text-primary" />
+                    </div>
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                      Cryptographic
+                    </Badge>
+                  </div>
+                  <InfoCardTitle className="text-xl font-bold text-primary mb-3">
+                    Guardian Consensus
+                  </InfoCardTitle>
+                  <InfoCardDescription className="text-muted-foreground leading-relaxed">
+                    Multi-jurisdictional guardian network enables democratic consensus for selective 
+                    de-anonymization requests with cryptographic proof and threshold-based voting.
+                  </InfoCardDescription>
+                </InfoCardContent>
+                <InfoCardFooter className="mt-6">
+                  <div className="flex items-center gap-2 text-xs text-primary">
+                    <CheckCircle className="h-3 w-3" />
+                    Threshold Voting
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Multi-Guardian
+                  </div>
+                </InfoCardFooter>
+              </InfoCard>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
+              transition={{ duration: 0.8, delay: 2.2 }}
+            >
+              <InfoCard className="h-full bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 group">
+                <InfoCardContent>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 rounded-xl bg-emerald-100 border border-emerald-200 group-hover:bg-emerald-200 transition-colors">
+                      <Shield className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200">
+                      Zero-Knowledge
+                    </Badge>
+                  </div>
+                  <InfoCardTitle className="text-xl font-bold text-emerald-700 mb-3">
+                    Privacy-First Design
+                  </InfoCardTitle>
+                  <InfoCardDescription className="text-muted-foreground leading-relaxed">
+                    Zero-knowledge proofs and threshold cryptography ensure user privacy while enabling 
+                    regulatory compliance when required. Selective disclosure protects uninvolved parties.
+                  </InfoCardDescription>
+                </InfoCardContent>
+                <InfoCardFooter className="mt-6">
+                  <div className="flex items-center gap-2 text-xs text-emerald-600">
+                    <CheckCircle className="h-3 w-3" />
+                    ZK Proofs
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Privacy Preserved
+                  </div>
+                </InfoCardFooter>
+              </InfoCard>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
+              transition={{ duration: 0.8, delay: 2.4 }}
+            >
+              <InfoCard className="h-full bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 group">
+                <InfoCardContent>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 rounded-xl bg-blue-100 border border-blue-200 group-hover:bg-blue-200 transition-colors">
+                      <Bot className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
+                      Google ADK
+                    </Badge>
+                  </div>
+                  <InfoCardTitle className="text-xl font-bold text-blue-700 mb-3">
+                    AI-Powered Monitoring
+                  </InfoCardTitle>
+                  <InfoCardDescription className="text-muted-foreground leading-relaxed">
+                    Multi-agent system with Google ADK integration provides intelligent fraud detection, 
+                    automated compliance workflows, and real-time risk assessment.
+                  </InfoCardDescription>
+                </InfoCardContent>
+                <InfoCardFooter className="mt-6">
+                  <div className="flex items-center gap-2 text-xs text-blue-600">
+                    <CheckCircle className="h-3 w-3" />
+                    AI Powered
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Real-time
+                  </div>
+                </InfoCardFooter>
+              </InfoCard>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
+              transition={{ duration: 0.8, delay: 2.6 }}
+            >
+              <InfoCard className="h-full bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-300 group">
+                <InfoCardContent>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 rounded-xl bg-purple-100 border border-purple-200 group-hover:bg-purple-200 transition-colors">
+                      <Network className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">
+                      Multi-Regulatory
+                    </Badge>
+                  </div>
+                  <InfoCardTitle className="text-xl font-bold text-purple-700 mb-3">
+                    Cross-Border Coordination
+                  </InfoCardTitle>
+                  <InfoCardDescription className="text-muted-foreground leading-relaxed">
+                    Automated coordination across multiple regulatory jurisdictions with standardized 
+                    protocols for seamless international compliance.
+                  </InfoCardDescription>
+                </InfoCardContent>
+                <InfoCardFooter className="mt-6">
+                  <div className="flex items-center gap-2 text-xs text-purple-600">
+                    <CheckCircle className="h-3 w-3" />
+                    Global Coordination
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Cross-Border
+                  </div>
+                </InfoCardFooter>
+              </InfoCard>
+            </motion.div>
+          </div>
+
+          {/* Integration Showcase */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="max-w-6xl mx-auto"
+            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
+            transition={{ duration: 0.8, delay: 2.8 }}
           >
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-                Comprehensive Compliance Platform
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Advanced features designed specifically for institutional blockchain compliance and oversight
-              </p>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-8 mb-16">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <FeatureCard {...feature} />
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Integration Showcase */}
             <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8">
               <div className="text-center space-y-6">
                 <h3 className="text-2xl font-bold">Multi-Agent Architecture</h3>
@@ -586,7 +707,7 @@ export default function HomePage() {
             </Card>
           </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Metrics Section */}
       <section id="impact" className="py-20 bg-gradient-to-br from-primary/5 to-emerald-50/30">
