@@ -14,7 +14,7 @@ export const config = createConfig({
       metadata: {
         name: 'GuardianOS',
         description: 'Multi-agent regulatory compliance orchestration system',
-        url: 'https://guardianos.ai',
+        url: typeof window !== 'undefined' ? window.location.origin : 'https://guardianos.ai',
         icons: ['https://guardianos.ai/icon.png']
       }
     }),
@@ -27,6 +27,7 @@ export const config = createConfig({
     [arbitrum.id]: http(process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || `https://arb-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`),
     [optimism.id]: http(process.env.NEXT_PUBLIC_OPTIMISM_RPC_URL || `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`),
   },
+  ssr: true,
 })
 
 declare module 'wagmi' {

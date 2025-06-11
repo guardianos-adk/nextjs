@@ -1,0 +1,1674 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# GuardianOS - Complete Modern Architecture
+## Full-Stack System Design with React 19.1 + Next.js 15.3.3 + ADK Integration
+
+**Tech Stack**: React 19.1, Next.js 15.3.3, Tailwind CSS v4, Bun 1.2.15, Python FastAPI, PostgreSQL, Redis, MongoDB
+
+---
+
+## 🏗️ System Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   GuardianOS Frontend                          │
+│              Next.js 15.3.3 + React 19.1                     │
+│                  (Bun 1.2.15 Runtime)                         │
+└─────────────────┬───────────────────────────────────────────────┘
+                  │ Server Actions + tRPC + WebSocket
+┌─────────────────┼───────────────────────────────────────────────┐
+│                 │           API Gateway                        │
+│              (FastAPI + Kong)                                 │
+└─────────────────┬───────────────────────────────────────────────┘
+                  │
+        ┌─────────┼─────────┬─────────────┬─────────────┐
+        │         │         │             │             │
+        ▼         ▼         ▼             ▼             ▼
+┌──────────┐ ┌──────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
+│ Guardian │ │   ADK    │ │Sentinel │ │  Auth   │ │WebSocket│
+│ Voting   │ │ Bridge   │ │Monitor  │ │Service  │ │ Events  │
+│ Service  │ │ Service  │ │ Service │ │         │ │ Service │
+└──────────┘ └──────────┘ └─────────┘ └─────────┘ └─────────┘
+        │         │         │             │             │
+        └─────────┼─────────┼─────────────┼─────────────┘
+                  │         │             │
+                  ▼         ▼             ▼
+        ┌─────────────────────────────────────────┐
+        │              Data Layer                 │
+        │  PostgreSQL + Redis + MongoDB + Queue   │
+        └─────────────────────────────────────────┘
+                          │
+                          ▼
+        ┌─────────────────────────────────────────┐
+        │           External Systems              │
+        │  ADK Agents + Blockchain + Regulatory   │
+        └─────────────────────────────────────────┘
+```
+
+---
+
+## 🌐 Frontend Architecture (Next.js 15.3.3 + React 19.1)
+
+### **Project Structure**
+
+```
+guardianOS-frontend/
+├── package.json                      # Bun 1.2.15 + Next.js 15.3.3
+├── next.config.ts                    # Turbopack + experimental features
+├── tailwind.config.ts                # Tailwind CSS v4 configuration
+├── instrumentation.ts                # Client-side monitoring
+├── app/                              # App Router (Next.js 15+)
+│   ├── (auth)/                       # Route groups for auth
+│   │   ├── login/page.tsx
+│   │   └── layout.tsx
+│   ├── (dashboard)/                  # Main guardian interface
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx              # Main dashboard
+│   │   │   ├── loading.tsx           # React Suspense loading
+│   │   │   └── error.tsx             # Error boundaries
+│   │   ├── voting/
+│   │   │   ├── page.tsx              # Voting interface
+│   │   │   ├── [requestId]/
+│   │   │   │   ├── page.tsx          # Individual vote page
+│   │   │   │   └── evidence/page.tsx # Evidence viewer
+│   │   │   └── components/
+│   │   │       ├── VotingCard.tsx
+│   │   │       ├── EvidenceViewer.tsx
+│   │   │       └── ConsensusTracker.tsx
+│   │   ├── sentinel/
+│   │   │   ├── page.tsx              # Sentinel monitoring
+│   │   │   ├── metrics/page.tsx      # Performance metrics
+│   │   │   ├── alerts/page.tsx       # Alert management
+│   │   │   └── components/
+│   │   │       ├── SentinelStatus.tsx
+│   │   │       ├── MetricsDashboard.tsx
+│   │   │       └── AlertsPanel.tsx
+│   │   ├── agents/
+│   │   │   ├── page.tsx              # ADK agent status
+│   │   │   ├── [agentId]/page.tsx    # Individual agent details
+│   │   │   └── components/
+│   │   │       ├── AgentHealthCard.tsx
+│   │   │       ├── WorkflowVisualizer.tsx
+│   │   │       └── ExecutionLogs.tsx
+│   │   └── layout.tsx                # Dashboard layout
+│   ├── api/                          # API routes (Server Actions)
+│   │   ├── auth/route.ts
+│   │   ├── votes/route.ts
+│   │   ├── sentinel/route.ts
+│   │   └── websocket/route.ts
+│   ├── globals.css                   # Tailwind v4 imports
+│   ├── layout.tsx                    # Root layout
+│   └── not-found.tsx
+├── components/                       # Shared components
+│   ├── ui/                          # Base UI components
+│   │   ├── Button.tsx               # React 19 optimized
+│   │   ├── Card.tsx
+│   │   ├── Modal.tsx
+│   │   ├── DataTable.tsx
+│   │   └── Chart.tsx
+│   ├── guardian/                    # Guardian-specific components
+│   │   ├── GuardianProfile.tsx
+│   │   ├── JurisdictionBadge.tsx
+│   │   ├── ReputationScore.tsx
+│   │   └── ActivityFeed.tsx
+│   ├── voting/                      # Voting components
+│   │   ├── VoteButton.tsx
+│   │   ├── ConsensusProgress.tsx
+│   │   ├── EvidenceUpload.tsx
+│   │   └── DecisionReasoning.tsx
+│   ├── monitoring/                  # Monitoring components
+│   │   ├── RealTimeChart.tsx
+│   │   ├── StatusIndicator.tsx
+│   │   ├── AlertBanner.tsx
+│   │   └── SystemHealth.tsx
+│   └── layout/                      # Layout components
+│       ├── Header.tsx
+│       ├── Sidebar.tsx
+│       ├── Navigation.tsx
+│       └── Footer.tsx
+├── lib/                            # Utilities and configurations
+│   ├── api/                        # API client functions
+│   │   ├── guardian.ts
+│   │   ├── voting.ts
+│   │   ├── sentinel.ts
+│   │   └── agents.ts
+│   ├── auth/                       # Authentication utilities
+│   │   ├── config.ts
+│   │   ├── middleware.ts
+│   │   └── providers.ts
+│   ├── websocket/                  # WebSocket management
+│   │   ├── client.ts
+│   │   ├── hooks.ts
+│   │   └── types.ts
+│   ├── utils/                      # General utilities
+│   │   ├── cn.ts                   # Class name utility
+│   │   ├── date.ts
+│   │   ├── format.ts
+│   │   └── validation.ts
+│   └── types/                      # TypeScript definitions
+│       ├── guardian.ts
+│       ├── voting.ts
+│       ├── sentinel.ts
+│       └── api.ts
+├── hooks/                          # Custom React hooks
+│   ├── useGuardianAuth.ts
+│   ├── useRealTimeVoting.ts
+│   ├── useSentinelMonitoring.ts
+│   ├── useAgentStatus.ts
+│   └── useWebSocket.ts
+└── stores/                         # State management
+    ├── guardian.ts                 # Guardian state
+    ├── voting.ts                   # Voting state
+    ├── sentinel.ts                 # Sentinel monitoring state
+    └── websocket.ts                # WebSocket state
+```
+
+### **Modern Next.js 15.3.3 Configuration**
+
+```typescript
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  // Enable Turbopack for faster development
+  turbo: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+  },
+  
+  // Experimental features from Next.js 15.3+
+  experimental: {
+    // React 19 support
+    reactCompiler: true,
+    
+    // View Transitions API (from 15.2)
+    viewTransition: true,
+    
+    // Client-side instrumentation (from 15.3)
+    instrumentationHook: true,
+    
+    // Turbopack for production builds (15.3 alpha)
+    turbo: {
+      moduleIdStrategy: 'deterministic',
+    },
+    
+    // Streaming metadata (from 15.2)
+    dynamicIO: true,
+  },
+  
+  // TypeScript strict mode
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  
+  // ESLint configuration
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  
+  // Output configuration
+  output: 'standalone',
+  
+  // Image optimization
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.guardianOS.com',
+      },
+    ],
+  },
+}
+
+export default nextConfig
+```
+
+### **Tailwind CSS v4 Configuration**
+
+```typescript
+// tailwind.config.ts
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  // Tailwind v4 automatic content detection
+  content: [
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './hooks/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  
+  theme: {
+    extend: {
+      // Custom design system for GuardianOS
+      colors: {
+        // Brand colors using OKLCH (Tailwind v4)
+        guardian: {
+          50: 'oklch(0.98 0.008 240)',
+          100: 'oklch(0.94 0.020 240)',
+          500: 'oklch(0.55 0.15 240)',
+          900: 'oklch(0.25 0.08 240)',
+        },
+        
+        // Status colors for compliance
+        approved: 'oklch(0.65 0.15 145)',
+        pending: 'oklch(0.75 0.12 85)',
+        denied: 'oklch(0.65 0.15 25)',
+        urgent: 'oklch(0.65 0.20 15)',
+      },
+      
+      // Container queries (native in v4)
+      containers: {
+        '2xs': '16rem',
+        'xs': '20rem',
+        'sm': '24rem',
+        'md': '28rem',
+        'lg': '32rem',
+        'xl': '36rem',
+        '2xl': '42rem',
+      },
+      
+      // Custom spacing for dashboard layout
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '128': '32rem',
+      },
+      
+      // Animation for real-time updates
+      animation: {
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'consensus-glow': 'consensusGlow 2s ease-in-out infinite',
+      },
+      
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        consensusGlow: {
+          '0%, 100%': { boxShadow: '0 0 5px oklch(0.55 0.15 240)' },
+          '50%': { boxShadow: '0 0 20px oklch(0.55 0.15 240)' },
+        },
+      },
+    },
+  },
+  
+  plugins: [
+    // Typography plugin for documentation
+    require('@tailwindcss/typography'),
+    
+    // Forms plugin for complex voting forms
+    require('@tailwindcss/forms'),
+    
+    // Container queries plugin (native in v4)
+    require('@tailwindcss/container-queries'),
+  ],
+}
+
+export default config
+```
+
+### **Bun 1.2.15 Package Configuration**
+
+```json
+{
+  "name": "guardianOS-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "next": "15.3.3",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.6.0",
+    
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/forms": "^0.5.9",
+    "@tailwindcss/container-queries": "^0.1.1",
+    
+    "@trpc/client": "^11.0.0",
+    "@trpc/server": "^11.0.0",
+    "@trpc/react-query": "^11.0.0",
+    "@tanstack/react-query": "^5.56.0",
+    
+    "socket.io-client": "^4.8.0",
+    "framer-motion": "^11.11.0",
+    "recharts": "^2.13.0",
+    
+    "zod": "^3.23.0",
+    "date-fns": "^4.1.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.5.0",
+    
+    "@auth/nextjs": "^0.8.0",
+    "jose": "^5.9.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "eslint-config-next": "15.3.3",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    
+    "prettier": "^3.3.0",
+    "prettier-plugin-tailwindcss": "^0.6.0",
+    
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/jest-dom": "^6.6.0",
+    "happy-dom": "^15.7.0"
+  },
+  "engines": {
+    "bun": ">=1.2.15"
+  }
+}
+```
+
+### **React 19.1 Components with Modern Patterns**
+
+```typescript
+// components/voting/VoteButton.tsx
+'use client'
+
+import { useActionState, useOptimistic } from 'react'
+import { submitVote } from '@/lib/api/voting'
+import { Button } from '@/components/ui/Button'
+import type { VoteDecision } from '@/lib/types/voting'
+
+interface VoteButtonProps {
+  requestId: string
+  decision: VoteDecision
+  disabled?: boolean
+}
+
+export function VoteButton({ requestId, decision, disabled }: VoteButtonProps) {
+  // React 19: useActionState for form actions
+  const [state, formAction, isPending] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      const reasoning = formData.get('reasoning') as string
+      return await submitVote(requestId, decision, reasoning)
+    },
+    { status: 'idle' }
+  )
+  
+  // React 19: useOptimistic for immediate UI updates
+  const [optimisticVote, setOptimisticVote] = useOptimistic(
+    null,
+    (currentState, newVote: VoteDecision) => newVote
+  )
+  
+  const handleSubmit = async (formData: FormData) => {
+    // Optimistic update
+    setOptimisticVote(decision)
+    
+    // Submit actual vote
+    formAction(formData)
+  }
+  
+  return (
+    <form action={handleSubmit} className="space-y-4">
+      <textarea
+        name="reasoning"
+        placeholder="Provide reasoning for your decision..."
+        required
+        className="w-full p-3 border rounded-lg resize-none"
+        rows={3}
+      />
+      
+      <Button
+        type="submit"
+        variant={decision === 'APPROVE' ? 'success' : 'danger'}
+        disabled={disabled || isPending}
+        className="w-full"
+      >
+        {isPending ? (
+          <div className="flex items-center gap-2">
+            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+            Submitting...
+          </div>
+        ) : (
+          `${decision === 'APPROVE' ? 'Approve' : 'Deny'} Request`
+        )}
+      </Button>
+      
+      {optimisticVote && (
+        <div className="text-sm text-gray-600 animate-fade-in">
+          Vote submitted: {optimisticVote}
+        </div>
+      )}
+      
+      {state.error && (
+        <div className="text-sm text-red-600 animate-slide-up">
+          {state.error}
+        </div>
+      )}
+    </form>
+  )
+}
+```
+
+```typescript
+// components/monitoring/RealTimeChart.tsx
+'use client'
+
+import { useEffect, useState } from 'react'
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts'
+import { useWebSocket } from '@/hooks/useWebSocket'
+import type { MetricData } from '@/lib/types/sentinel'
+
+interface RealTimeChartProps {
+  metric: string
+  title: string
+  color: string
+}
+
+export function RealTimeChart({ metric, title, color }: RealTimeChartProps) {
+  const [data, setData] = useState<MetricData[]>([])
+  
+  // WebSocket connection for real-time updates
+  const { lastMessage, connectionStatus } = useWebSocket('/api/websocket/metrics')
+  
+  useEffect(() => {
+    if (lastMessage?.metric === metric) {
+      setData(prevData => {
+        const newData = [...prevData, lastMessage.data]
+        // Keep only last 50 data points
+        return newData.slice(-50)
+      })
+    }
+  }, [lastMessage, metric])
+  
+  return (
+    <div className="bg-white rounded-lg p-6 shadow-sm border">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <div className="flex items-center gap-2">
+          <div 
+            className={`w-2 h-2 rounded-full ${
+              connectionStatus === 'Connected' 
+                ? 'bg-green-500 animate-pulse' 
+                : 'bg-red-500'
+            }`}
+          />
+          <span className="text-sm text-gray-600">
+            {connectionStatus}
+          </span>
+        </div>
+      </div>
+      
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+            <XAxis 
+              dataKey="timestamp" 
+              tickFormatter={(value) => new Date(value).toLocaleTimeString()}
+            />
+            <YAxis />
+            <Line 
+              type="monotone" 
+              dataKey="value" 
+              stroke={color}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
+```
+
+### **Modern Hooks with React 19 Features**
+
+```typescript
+// hooks/useRealTimeVoting.ts
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useWebSocket } from './useWebSocket'
+import type { VotingUpdate, DeAnonymizationRequest } from '@/lib/types/voting'
+
+interface UseRealTimeVotingReturn {
+  activeRequests: DeAnonymizationRequest[]
+  consensusUpdates: Record<string, number>
+  submitVote: (requestId: string, decision: string, reasoning: string) => Promise<void>
+  isLoading: boolean
+  error: string | null
+}
+
+export function useRealTimeVoting(): UseRealTimeVotingReturn {
+  const [activeRequests, setActiveRequests] = useState<DeAnonymizationRequest[]>([])
+  const [consensusUpdates, setConsensusUpdates] = useState<Record<string, number>>({})
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  // WebSocket for real-time voting updates
+  const { lastMessage, sendMessage, connectionStatus } = useWebSocket('/api/websocket/voting')
+  
+  // Handle incoming WebSocket messages
+  useEffect(() => {
+    if (!lastMessage) return
+    
+    const update = lastMessage as VotingUpdate
+    
+    switch (update.type) {
+      case 'NEW_REQUEST':
+        setActiveRequests(prev => [...prev, update.request])
+        break
+        
+      case 'VOTE_UPDATE':
+        setConsensusUpdates(prev => ({
+          ...prev,
+          [update.requestId]: update.currentVotes
+        }))
+        break
+        
+      case 'CONSENSUS_REACHED':
+        setActiveRequests(prev => 
+          prev.filter(req => req.id !== update.requestId)
+        )
+        // Show notification
+        break
+        
+      case 'REQUEST_EXPIRED':
+        setActiveRequests(prev => 
+          prev.filter(req => req.id !== update.requestId)
+        )
+        break
+    }
+  }, [lastMessage])
+  
+  // Submit vote function
+  const submitVote = useCallback(async (
+    requestId: string, 
+    decision: string, 
+    reasoning: string
+  ) => {
+    try {
+      setError(null)
+      
+      // Send vote via WebSocket for immediate response
+      await sendMessage({
+        type: 'SUBMIT_VOTE',
+        requestId,
+        decision,
+        reasoning,
+        timestamp: new Date().toISOString()
+      })
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit vote')
+      throw err
+    }
+  }, [sendMessage])
+  
+  // Load initial data
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const response = await fetch('/api/voting/active-requests')
+        const requests = await response.json()
+        setActiveRequests(requests)
+      } catch (err) {
+        setError('Failed to load active requests')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    loadInitialData()
+  }, [])
+  
+  return {
+    activeRequests,
+    consensusUpdates,
+    submitVote,
+    isLoading,
+    error
+  }
+}
+```
+
+---
+
+## 🔧 Backend API Architecture (Python FastAPI)
+
+### **Microservices Structure**
+
+```
+guardianOS-backend/
+├── pyproject.toml                    # Python dependencies
+├── docker-compose.yml               # Development environment
+├── alembic/                         # Database migrations
+├── app/
+│   ├── main.py                      # FastAPI application entry
+│   ├── config.py                    # Configuration management
+│   ├── dependencies.py              # Dependency injection
+│   └── middleware.py                # Custom middleware
+├── services/                        # Microservices
+│   ├── guardian_service/            # Guardian management
+│   │   ├── __init__.py
+│   │   ├── api.py                   # FastAPI routes
+│   │   ├── models.py                # Pydantic models
+│   │   ├── service.py               # Business logic
+│   │   └── repository.py            # Data access
+│   ├── voting_service/              # Voting system
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── models.py
+│   │   ├── service.py
+│   │   ├── consensus.py             # Consensus algorithms
+│   │   └── websocket.py             # Real-time updates
+│   ├── adk_bridge_service/          # ADK agent integration
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── adk_client.py            # ADK agent communication
+│   │   ├── workflow_monitor.py      # Workflow tracking
+│   │   └── event_handler.py         # Agent event processing
+│   ├── sentinel_service/            # FraudSentinel monitoring
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── monitor.py               # Performance monitoring
+│   │   ├── metrics.py               # Metrics collection
+│   │   └── alerts.py                # Alert management
+│   ├── auth_service/                # Authentication
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── jwt_handler.py           # JWT management
+│   │   ├── lei_validator.py         # LEI verification
+│   │   └── rbac.py                  # Role-based access
+│   └── websocket_service/           # Real-time communication
+│       ├── __init__.py
+│       ├── manager.py               # Connection management
+│       ├── events.py                # Event handling
+│       └── rooms.py                 # Room management
+├── core/                           # Shared utilities
+│   ├── database.py                 # Database connection
+│   ├── redis.py                    # Redis connection
+│   ├── security.py                 # Security utilities
+│   ├── logging.py                  # Logging configuration
+│   └── exceptions.py               # Custom exceptions
+├── models/                         # Database models
+│   ├── guardian.py
+│   ├── voting.py
+│   ├── request.py
+│   └── audit.py
+└── tests/                          # Test suite
+    ├── unit/
+    ├── integration/
+    └── e2e/
+```
+
+### **Core API Services Implementation**
+
+```python
+# services/voting_service/api.py
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.websockets import WebSocket, WebSocketDisconnect
+from typing import List, Optional
+import asyncio
+import json
+
+from .service import VotingService
+from .models import (
+    VoteSubmission, VotingUpdate, DeAnonymizationRequest,
+    ConsensusResult, VoteDecision
+)
+from ..auth_service.dependencies import get_current_guardian
+from ..websocket_service.manager import ConnectionManager
+
+router = APIRouter(prefix="/api/v1/voting", tags=["voting"])
+websocket_manager = ConnectionManager()
+
+@router.get("/active-requests", response_model=List[DeAnonymizationRequest])
+async def get_active_requests(
+    guardian = Depends(get_current_guardian),
+    voting_service: VotingService = Depends()
+):
+    """Get all active de-anonymization requests for guardian's jurisdiction"""
+    return await voting_service.get_active_requests_for_guardian(guardian.id)
+
+@router.post("/requests/{request_id}/vote")
+async def submit_vote(
+    request_id: str,
+    vote: VoteSubmission,
+    guardian = Depends(get_current_guardian),
+    voting_service: VotingService = Depends()
+):
+    """Submit vote for a de-anonymization request"""
+    try:
+        # Validate guardian can vote on this request
+        request = await voting_service.get_request(request_id)
+        if not await voting_service.can_guardian_vote(guardian.id, request):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Guardian not authorized to vote on this request"
+            )
+        
+        # Submit vote
+        result = await voting_service.submit_vote(
+            request_id=request_id,
+            guardian_id=guardian.id,
+            decision=vote.decision,
+            reasoning=vote.reasoning,
+            confidence_level=vote.confidence_level
+        )
+        
+        # Broadcast update to connected guardians
+        await websocket_manager.broadcast_to_room(
+            room=f"request_{request_id}",
+            message={
+                "type": "VOTE_UPDATE",
+                "requestId": request_id,
+                "currentVotes": result.current_votes,
+                "consensusProgress": result.consensus_progress
+            }
+        )
+        
+        # Check if consensus reached
+        if result.consensus_reached:
+            await websocket_manager.broadcast_to_room(
+                room="guardian_dashboard",
+                message={
+                    "type": "CONSENSUS_REACHED",
+                    "requestId": request_id,
+                    "decision": result.final_decision,
+                    "participatingGuardians": result.participating_guardians
+                }
+            )
+            
+            # Trigger ADK workflow
+            from ..adk_bridge_service.service import ADKBridgeService
+            adk_service = ADKBridgeService()
+            await adk_service.trigger_consensus_workflow(result)
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to submit vote: {str(e)}"
+        )
+
+@router.websocket("/ws/{guardian_id}")
+async def voting_websocket(
+    websocket: WebSocket,
+    guardian_id: str,
+    voting_service: VotingService = Depends()
+):
+    """WebSocket endpoint for real-time voting updates"""
+    await websocket_manager.connect(websocket, guardian_id, "guardian_dashboard")
+    
+    try:
+        while True:
+            # Listen for messages from client
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            if message["type"] == "JOIN_REQUEST_ROOM":
+                request_id = message["requestId"]
+                await websocket_manager.join_room(
+                    guardian_id, f"request_{request_id}"
+                )
+                
+            elif message["type"] == "LEAVE_REQUEST_ROOM":
+                request_id = message["requestId"]
+                await websocket_manager.leave_room(
+                    guardian_id, f"request_{request_id}"
+                )
+                
+    except WebSocketDisconnect:
+        await websocket_manager.disconnect(guardian_id)
+```
+
+```python
+# services/adk_bridge_service/api.py
+from fastapi import APIRouter, Depends, HTTPException
+from typing import List, Dict, Any
+import asyncio
+
+from .service import ADKBridgeService
+from .models import (
+    AgentStatus, WorkflowExecution, AgentCommand,
+    WorkflowTrigger, ExecutionResult
+)
+from ..auth_service.dependencies import get_current_guardian
+
+router = APIRouter(prefix="/api/v1/adk", tags=["adk-bridge"])
+
+@router.get("/agents/status", response_model=List[AgentStatus])
+async def get_all_agent_status(
+    guardian = Depends(get_current_guardian),
+    adk_service: ADKBridgeService = Depends()
+):
+    """Get status of all connected ADK agents"""
+    return await adk_service.get_all_agent_status()
+
+@router.get("/agents/{agent_id}/status", response_model=AgentStatus)
+async def get_agent_status(
+    agent_id: str,
+    guardian = Depends(get_current_guardian),
+    adk_service: ADKBridgeService = Depends()
+):
+    """Get detailed status of specific ADK agent"""
+    status = await adk_service.get_agent_status(agent_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    return status
+
+@router.get("/workflows/active", response_model=List[WorkflowExecution])
+async def get_active_workflows(
+    guardian = Depends(get_current_guardian),
+    adk_service: ADKBridgeService = Depends()
+):
+    """Get all currently executing workflows"""
+    return await adk_service.get_active_workflows()
+
+@router.post("/workflows/trigger")
+async def trigger_workflow(
+    trigger: WorkflowTrigger,
+    guardian = Depends(get_current_guardian),
+    adk_service: ADKBridgeService = Depends()
+):
+    """Manually trigger a compliance workflow"""
+    try:
+        result = await adk_service.trigger_workflow(
+            workflow_type=trigger.workflow_type,
+            input_data=trigger.input_data,
+            triggered_by=guardian.id
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to trigger workflow: {str(e)}"
+        )
+
+@router.get("/agents/{agent_id}/logs")
+async def get_agent_logs(
+    agent_id: str,
+    limit: int = 100,
+    guardian = Depends(get_current_guardian),
+    adk_service: ADKBridgeService = Depends()
+):
+    """Get execution logs for specific ADK agent"""
+    return await adk_service.get_agent_logs(agent_id, limit)
+
+@router.post("/agents/{agent_id}/command")
+async def send_agent_command(
+    agent_id: str,
+    command: AgentCommand,
+    guardian = Depends(get_current_guardian),
+    adk_service: ADKBridgeService = Depends()
+):
+    """Send command to specific ADK agent"""
+    try:
+        result = await adk_service.send_agent_command(agent_id, command)
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to send command to agent: {str(e)}"
+        )
+```
+
+```python
+# services/sentinel_service/api.py
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.websockets import WebSocket
+from typing import List, Dict, Optional
+import asyncio
+import json
+
+from .service import SentinelMonitoringService
+from .models import (
+    SentinelMetrics, AlertConfiguration, PerformanceReport,
+    FraudDetectionResult, SystemHealth
+)
+from ..auth_service.dependencies import get_current_guardian
+from ..websocket_service.manager import ConnectionManager
+
+router = APIRouter(prefix="/api/v1/sentinel", tags=["sentinel"])
+websocket_manager = ConnectionManager()
+
+@router.get("/status", response_model=SystemHealth)
+async def get_sentinel_status(
+    guardian = Depends(get_current_guardian),
+    sentinel_service: SentinelMonitoringService = Depends()
+):
+    """Get overall FraudSentinel system health"""
+    return await sentinel_service.get_system_health()
+
+@router.get("/metrics/current", response_model=SentinelMetrics)
+async def get_current_metrics(
+    guardian = Depends(get_current_guardian),
+    sentinel_service: SentinelMonitoringService = Depends()
+):
+    """Get current real-time metrics"""
+    return await sentinel_service.get_current_metrics()
+
+@router.get("/metrics/historical")
+async def get_historical_metrics(
+    start_date: str,
+    end_date: str,
+    granularity: str = "hour",
+    guardian = Depends(get_current_guardian),
+    sentinel_service: SentinelMonitoringService = Depends()
+):
+    """Get historical metrics for time range"""
+    return await sentinel_service.get_historical_metrics(
+        start_date, end_date, granularity
+    )
+
+@router.get("/performance/report", response_model=PerformanceReport)
+async def get_performance_report(
+    days: int = 7,
+    guardian = Depends(get_current_guardian),
+    sentinel_service: SentinelMonitoringService = Depends()
+):
+    """Get comprehensive performance report"""
+    return await sentinel_service.generate_performance_report(days)
+
+@router.get("/alerts/active")
+async def get_active_alerts(
+    severity: Optional[str] = None,
+    guardian = Depends(get_current_guardian),
+    sentinel_service: SentinelMonitoringService = Depends()
+):
+    """Get all active alerts"""
+    return await sentinel_service.get_active_alerts(severity)
+
+@router.post("/alerts/acknowledge/{alert_id}")
+async def acknowledge_alert(
+    alert_id: str,
+    guardian = Depends(get_current_guardian),
+    sentinel_service: SentinelMonitoringService = Depends()
+):
+    """Acknowledge an alert"""
+    return await sentinel_service.acknowledge_alert(alert_id, guardian.id)
+
+@router.websocket("/ws/metrics/{guardian_id}")
+async def metrics_websocket(
+    websocket: WebSocket,
+    guardian_id: str,
+    sentinel_service: SentinelMonitoringService = Depends()
+):
+    """WebSocket for real-time metrics streaming"""
+    await websocket_manager.connect(websocket, guardian_id, "sentinel_metrics")
+    
+    try:
+        # Start metrics streaming task
+        async def stream_metrics():
+            while True:
+                metrics = await sentinel_service.get_current_metrics()
+                await websocket_manager.send_to_connection(
+                    guardian_id,
+                    {
+                        "type": "METRICS_UPDATE",
+                        "timestamp": metrics.timestamp,
+                        "data": metrics.dict()
+                    }
+                )
+                await asyncio.sleep(5)  # Update every 5 seconds
+        
+        metrics_task = asyncio.create_task(stream_metrics())
+        
+        # Listen for client messages
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            if message["type"] == "SUBSCRIBE_METRIC":
+                # Handle metric subscription
+                pass
+            elif message["type"] == "UNSUBSCRIBE_METRIC":
+                # Handle metric unsubscription
+                pass
+                
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        metrics_task.cancel()
+        await websocket_manager.disconnect(guardian_id)
+```
+
+### **Database Integration & Models**
+
+```python
+# models/voting.py
+from sqlalchemy import Column, String, Integer, Float, DateTime, Text, Boolean, JSON
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import func
+import uuid
+
+Base = declarative_base()
+
+class DeAnonymizationRequest(Base):
+    __tablename__ = "deanonymization_requests"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    requesting_guardian_id = Column(UUID(as_uuid=True), nullable=False)
+    transaction_hash = Column(String(66), nullable=False)
+    blockchain_network = Column(String(50), nullable=False)
+    evidence_hash = Column(String(66), nullable=False)
+    evidence_ipfs_cid = Column(String(100))
+    compliance_reason = Column(Text, nullable=False)
+    urgency_level = Column(String(20), nullable=False)
+    consensus_threshold = Column(Integer, default=3)
+    privacy_impact_assessment = Column(JSON, nullable=False)
+    deadline = Column(DateTime(timezone=True), nullable=False)
+    status = Column(String(20), default='PENDING')
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+class GuardianVote(Base):
+    __tablename__ = "guardian_votes"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    request_id = Column(UUID(as_uuid=True), nullable=False)
+    guardian_id = Column(UUID(as_uuid=True), nullable=False)
+    vote_decision = Column(String(50), nullable=False)
+    reasoning = Column(Text, nullable=False)
+    confidence_level = Column(Float)  # 0.00 to 1.00
+    bls_signature = Column(Text, nullable=False)
+    vote_timestamp = Column(DateTime(timezone=True), server_default=func.now())
+
+class ConsensusResult(Base):
+    __tablename__ = "consensus_results"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    request_id = Column(UUID(as_uuid=True), nullable=False)
+    decision = Column(String(50), nullable=False)
+    threshold_met = Column(Boolean, nullable=False)
+    participating_guardians = Column(Integer, nullable=False)
+    consensus_proof = Column(JSON, nullable=False)
+    proof_hash = Column(String(66), nullable=False)
+    finalized_at = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+```python
+# core/database.py
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from contextlib import asynccontextmanager
+import os
+
+# Database URL for async PostgreSQL
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", 
+    "postgresql+asyncpg://user:pass@localhost/guardianOS"
+)
+
+# Create async engine
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=True,  # Log SQL queries in development
+    pool_size=20,
+    max_overflow=30,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+)
+
+# Async session factory
+AsyncSessionLocal = sessionmaker(
+    engine, 
+    class_=AsyncSession, 
+    expire_on_commit=False
+)
+
+@asynccontextmanager
+async def get_db_session():
+    """Async context manager for database sessions"""
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+# Dependency for FastAPI
+async def get_db():
+    """FastAPI dependency for database sessions"""
+    async with get_db_session() as session:
+        yield session
+```
+
+---
+
+## 🔄 Real-Time Communication Architecture
+
+### **WebSocket Management System**
+
+```python
+# services/websocket_service/manager.py
+from fastapi import WebSocket
+from typing import Dict, List, Set
+import json
+import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ConnectionManager:
+    """Manage WebSocket connections with room-based organization"""
+    
+    def __init__(self):
+        # guardian_id -> WebSocket connection
+        self.connections: Dict[str, WebSocket] = {}
+        
+        # room_name -> Set of guardian_ids
+        self.rooms: Dict[str, Set[str]] = {}
+        
+        # guardian_id -> Set of room_names
+        self.guardian_rooms: Dict[str, Set[str]] = {}
+    
+    async def connect(self, websocket: WebSocket, guardian_id: str, initial_room: str = None):
+        """Accept new WebSocket connection"""
+        await websocket.accept()
+        self.connections[guardian_id] = websocket
+        self.guardian_rooms[guardian_id] = set()
+        
+        if initial_room:
+            await self.join_room(guardian_id, initial_room)
+        
+        logger.info(f"Guardian {guardian_id} connected")
+    
+    async def disconnect(self, guardian_id: str):
+        """Handle WebSocket disconnection"""
+        if guardian_id in self.connections:
+            # Leave all rooms
+            rooms_to_leave = list(self.guardian_rooms.get(guardian_id, set()))
+            for room in rooms_to_leave:
+                await self.leave_room(guardian_id, room)
+            
+            # Remove connection
+            del self.connections[guardian_id]
+            if guardian_id in self.guardian_rooms:
+                del self.guardian_rooms[guardian_id]
+            
+            logger.info(f"Guardian {guardian_id} disconnected")
+    
+    async def join_room(self, guardian_id: str, room_name: str):
+        """Add guardian to a room"""
+        if room_name not in self.rooms:
+            self.rooms[room_name] = set()
+        
+        self.rooms[room_name].add(guardian_id)
+        self.guardian_rooms[guardian_id].add(room_name)
+        
+        logger.info(f"Guardian {guardian_id} joined room {room_name}")
+    
+    async def leave_room(self, guardian_id: str, room_name: str):
+        """Remove guardian from a room"""
+        if room_name in self.rooms:
+            self.rooms[room_name].discard(guardian_id)
+            if not self.rooms[room_name]:
+                del self.rooms[room_name]
+        
+        if guardian_id in self.guardian_rooms:
+            self.guardian_rooms[guardian_id].discard(room_name)
+        
+        logger.info(f"Guardian {guardian_id} left room {room_name}")
+    
+    async def send_to_connection(self, guardian_id: str, message: dict):
+        """Send message to specific guardian"""
+        if guardian_id in self.connections:
+            try:
+                await self.connections[guardian_id].send_text(json.dumps(message))
+            except Exception as e:
+                logger.error(f"Failed to send message to {guardian_id}: {e}")
+                await self.disconnect(guardian_id)
+    
+    async def broadcast_to_room(self, room_name: str, message: dict):
+        """Broadcast message to all guardians in a room"""
+        if room_name in self.rooms:
+            guardians = list(self.rooms[room_name])
+            await asyncio.gather(
+                *[self.send_to_connection(guardian_id, message) 
+                  for guardian_id in guardians],
+                return_exceptions=True
+            )
+    
+    async def broadcast_to_all(self, message: dict):
+        """Broadcast message to all connected guardians"""
+        await asyncio.gather(
+            *[self.send_to_connection(guardian_id, message) 
+              for guardian_id in self.connections.keys()],
+            return_exceptions=True
+        )
+
+# Global connection manager instance
+connection_manager = ConnectionManager()
+```
+
+### **Event-Driven Architecture**
+
+```python
+# services/websocket_service/events.py
+from typing import Dict, Any, Callable, List
+from dataclasses import dataclass
+from enum import Enum
+import asyncio
+import json
+
+class EventType(str, Enum):
+    # Voting events
+    NEW_REQUEST = "NEW_REQUEST"
+    VOTE_SUBMITTED = "VOTE_SUBMITTED"
+    CONSENSUS_REACHED = "CONSENSUS_REACHED"
+    REQUEST_EXPIRED = "REQUEST_EXPIRED"
+    
+    # Agent events
+    AGENT_STATUS_CHANGE = "AGENT_STATUS_CHANGE"
+    WORKFLOW_STARTED = "WORKFLOW_STARTED"
+    WORKFLOW_COMPLETED = "WORKFLOW_COMPLETED"
+    AGENT_ERROR = "AGENT_ERROR"
+    
+    # Sentinel events
+    FRAUD_DETECTED = "FRAUD_DETECTED"
+    PERFORMANCE_ALERT = "PERFORMANCE_ALERT"
+    SYSTEM_HEALTH_CHANGE = "SYSTEM_HEALTH_CHANGE"
+    METRICS_UPDATE = "METRICS_UPDATE"
+
+@dataclass
+class Event:
+    type: EventType
+    data: Dict[str, Any]
+    source: str
+    timestamp: str
+    metadata: Dict[str, Any] = None
+
+class EventBus:
+    """Central event bus for system-wide event handling"""
+    
+    def __init__(self):
+        self.subscribers: Dict[EventType, List[Callable]] = {}
+        self.event_queue = asyncio.Queue()
+        self.running = False
+    
+    def subscribe(self, event_type: EventType, handler: Callable):
+        """Subscribe to specific event type"""
+        if event_type not in self.subscribers:
+            self.subscribers[event_type] = []
+        self.subscribers[event_type].append(handler)
+    
+    async def publish(self, event: Event):
+        """Publish event to the bus"""
+        await self.event_queue.put(event)
+    
+    async def start(self):
+        """Start processing events"""
+        self.running = True
+        while self.running:
+            try:
+                event = await asyncio.wait_for(
+                    self.event_queue.get(), 
+                    timeout=1.0
+                )
+                await self._process_event(event)
+            except asyncio.TimeoutError:
+                continue
+            except Exception as e:
+                logger.error(f"Error processing event: {e}")
+    
+    async def _process_event(self, event: Event):
+        """Process event by calling all subscribers"""
+        if event.type in self.subscribers:
+            handlers = self.subscribers[event.type]
+            await asyncio.gather(
+                *[handler(event) for handler in handlers],
+                return_exceptions=True
+            )
+
+# Global event bus instance
+event_bus = EventBus()
+
+# Event handlers for WebSocket broadcasting
+async def handle_voting_event(event: Event):
+    """Handle voting-related events"""
+    from .manager import connection_manager
+    
+    if event.type == EventType.NEW_REQUEST:
+        await connection_manager.broadcast_to_room(
+            "guardian_dashboard",
+            {
+                "type": event.type.value,
+                "request": event.data,
+                "timestamp": event.timestamp
+            }
+        )
+    
+    elif event.type == EventType.VOTE_SUBMITTED:
+        request_id = event.data["request_id"]
+        await connection_manager.broadcast_to_room(
+            f"request_{request_id}",
+            {
+                "type": event.type.value,
+                "requestId": request_id,
+                "currentVotes": event.data["current_votes"],
+                "consensusProgress": event.data["consensus_progress"]
+            }
+        )
+
+async def handle_sentinel_event(event: Event):
+    """Handle FraudSentinel monitoring events"""
+    from .manager import connection_manager
+    
+    if event.type == EventType.METRICS_UPDATE:
+        await connection_manager.broadcast_to_room(
+            "sentinel_metrics",
+            {
+                "type": event.type.value,
+                "metrics": event.data,
+                "timestamp": event.timestamp
+            }
+        )
+    
+    elif event.type == EventType.FRAUD_DETECTED:
+        await connection_manager.broadcast_to_all({
+            "type": "URGENT_ALERT",
+            "alert": {
+                "severity": "HIGH",
+                "message": "Potential fraud detected",
+                "data": event.data
+            }
+        })
+
+# Register event handlers
+event_bus.subscribe(EventType.NEW_REQUEST, handle_voting_event)
+event_bus.subscribe(EventType.VOTE_SUBMITTED, handle_voting_event)
+event_bus.subscribe(EventType.CONSENSUS_REACHED, handle_voting_event)
+event_bus.subscribe(EventType.METRICS_UPDATE, handle_sentinel_event)
+event_bus.subscribe(EventType.FRAUD_DETECTED, handle_sentinel_event)
+```
+
+---
+
+## 🔐 Security & Authentication Architecture
+
+### **Guardian Authentication System**
+
+```python
+# services/auth_service/jwt_handler.py
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any
+import jwt
+from passlib.context import CryptContext
+from cryptography.x509 import load_pem_x509_certificate
+from cryptography.hazmat.backends import default_backend
+
+class JWTHandler:
+    """JWT token management for guardian authentication"""
+    
+    def __init__(self, secret_key: str, algorithm: str = "HS256"):
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    
+    def create_access_token(
+        self, 
+        guardian_id: str, 
+        jurisdiction: List[str],
+        roles: List[str],
+        expires_delta: Optional[timedelta] = None
+    ) -> str:
+        """Create JWT access token for guardian"""
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(hours=8)
+        
+        to_encode = {
+            "sub": guardian_id,
+            "jurisdiction": jurisdiction,
+            "roles": roles,
+            "exp": expire,
+            "iat": datetime.utcnow(),
+            "type": "access"
+        }
+        
+        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+    
+    def create_refresh_token(self, guardian_id: str) -> str:
+        """Create refresh token for token renewal"""
+        expire = datetime.utcnow() + timedelta(days=30)
+        
+        to_encode = {
+            "sub": guardian_id,
+            "exp": expire,
+            "iat": datetime.utcnow(),
+            "type": "refresh"
+        }
+        
+        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+    
+    def verify_token(self, token: str) -> Dict[str, Any]:
+        """Verify and decode JWT token"""
+        try:
+            payload = jwt.decode(
+                token, 
+                self.secret_key, 
+                algorithms=[self.algorithm]
+            )
+            return payload
+        except jwt.ExpiredSignatureError:
+            raise ValueError("Token has expired")
+        except jwt.JWTError:
+            raise ValueError("Invalid token")
+
+class LEIValidator:
+    """Legal Entity Identifier validation for guardian institutions"""
+    
+    def __init__(self):
+        self.gleif_api_url = "https://api.gleif.org/api/v1"
+    
+    async def validate_lei_certificate(
+        self, 
+        lei_code: str, 
+        certificate_pem: str
+    ) -> Dict[str, Any]:
+        """Validate LEI certificate against GLEIF database"""
+        try:
+            # Parse X.509 certificate
+            cert = load_pem_x509_certificate(
+                certificate_pem.encode(), 
+                default_backend()
+            )
+            
+            # Extract certificate details
+            subject = cert.subject
+            issuer = cert.issuer
+            
+            # Validate against GLEIF API
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.gleif_api_url}/lei-records/{lei_code}"
+                )
+                
+                if response.status_code == 200:
+                    lei_data = response.json()
+                    
+                    return {
+                        "valid": True,
+                        "lei_code": lei_code,
+                        "entity_name": lei_data["data"]["attributes"]["entity"]["legalName"]["name"],
+                        "entity_status": lei_data["data"]["attributes"]["entity"]["entityStatus"],
+                        "jurisdiction": lei_data["data"]["attributes"]["entity"]["legalJurisdiction"],
+                        "certificate_valid": True,
+                        "certificate_subject": str(subject),
+                        "certificate_issuer": str(issuer)
+                    }
+                else:
+                    return {"valid": False, "error": "LEI not found in GLEIF database"}
+                    
+        except Exception as e:
+            return {"valid": False, "error": f"Certificate validation failed: {str(e)}"}
+```
+
+### **Role-Based Access Control**
+
+```python
+# services/auth_service/rbac.py
+from enum import Enum
+from typing import List, Dict, Set
+from functools import wraps
+
+class Permission(str, Enum):
+    # Voting permissions
+    VOTE_ON_REQUESTS = "vote_on_requests"
+    VIEW_REQUEST_EVIDENCE = "view_request_evidence"
+    CREATE_REQUESTS = "create_requests"
+    
+    # Agent management
+    VIEW_AGENT_STATUS = "view_agent_status"
+    CONTROL_AGENTS = "control_agents"
+    VIEW_AGENT_LOGS = "view_agent_logs"
+    
+    # Sentinel monitoring
+    VIEW_SENTINEL_METRICS = "view_sentinel_metrics"
+    MANAGE_ALERTS = "manage_alerts"
+    CONFIGURE_MONITORING = "configure_monitoring"
+    
+    # Administration
+    MANAGE_GUARDIANS = "manage_guardians"
+    VIEW_AUDIT_LOGS = "view_audit_logs"
+    SYSTEM_ADMINISTRATION = "system_administration"
+
+class Role(str, Enum):
+    # Guardian roles
+    GUARDIAN_VOTER = "guardian_voter"
+    GUARDIAN_ADMINISTRATOR = "guardian_administrator"
+    SENIOR_GUARDIAN = "senior_guardian"
+    
+    # System roles
+    SYSTEM_ADMINISTRATOR = "system_administrator"
+    MONITORING_OPERATOR = "monitoring_operator"
+    AUDIT_VIEWER = "audit_viewer"
+
+# Role-Permission mapping
+ROLE_PERMISSIONS: Dict[Role, Set[Permission]] = {
+    Role.GUARDIAN_VOTER: {
+        Permission.VOTE_ON_REQUESTS,
+        Permission.VIEW_REQUEST_EVIDENCE,
+        Permission.VIEW_AGENT_STATUS,
+        Permission.VIEW_SENTINEL_METRICS,
+    },
+    
+    Role.GUARDIAN_ADMINISTRATOR: {
+        Permission.VOTE_ON_REQUESTS,
+        Permission.VIEW_REQUEST_EVIDENCE,
+        Permission.CREATE_REQUESTS,
+        Permission.VIEW_AGENT_STATUS,
+        Permission.VIEW_AGENT_LOGS,
+        Permission.VIEW_SENTINEL_METRICS,
+        Permission.MANAGE_ALERTS,
+    },
+    
+    Role.SENIOR_GUARDIAN: {
+        Permission.VOTE_ON_REQUESTS,
+        Permission.VIEW_REQUEST_EVIDENCE,
+        Permission.CREATE_REQUESTS,
+        Permission.VIEW_AGENT_STATUS,
+        Permission.CONTROL_AGENTS,
+        Permission.VIEW_AGENT_LOGS,
+        Permission.VIEW_SENTINEL_METRICS,
+        Permission.MANAGE_ALERTS,
+        Permission.CONFIGURE_MONITORING,
+        Permission.VIEW_AUDIT_LOGS,
+    },
+    
+    Role.SYSTEM_ADMINISTRATOR: set(Permission),  # All permissions
+}
+
+class RBACService:
+    """Role-Based Access Control service"""
+    
+    def __init__(self):
+        self.role_permissions = ROLE_PERMISSIONS
+    
+    def get_user_permissions(self, roles: List[Role]) -> Set[Permission]:
+        """Get all permissions for user based on their roles"""
+        permissions = set()
+        for role in roles:
+            if role in self.role_permissions:
+                permissions.update(self.role_permissions[role])
+        return permissions
+    
+    def has_permission(self, user_roles: List[Role], required_permission: Permission) -> bool:
+        """Check if user has required permission"""
+        user_permissions = self.get_user_permissions(user_roles)
+        return required_permission in user_permissions
+    
+    def require_permission(self, permission: Permission):
+        """Decorator to require specific permission for endpoint"""
+        def decorator(func):
+            @wraps(func)
+            async def wrapper(*args, **kwargs):
+                # Extract guardian from dependencies
+                guardian = kwargs.get('guardian') or args[-1]  # Assume last arg is guardian
+                
+                if not self.has_permission(guardian.roles, permission):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail=f"Insufficient permissions. Required: {permission.value}"
+                    )
+                
+                return await func(*args, **kwargs)
+            return wrapper
+        return decorator
+
+# Global RBAC service
+rbac_service = RBACService()
+
+# Usage in API endpoints
+@router.post("/agents/{agent_id}/restart")
+@rbac_service.require_permission(Permission.CONTROL_AGENTS)
+async def restart_agent(
+    agent_id: str,
+    guardian = Depends(get_current_guardian),
+    adk_service: ADKBridgeService = Depends()
+):
+    """Restart specific ADK agent (requires control permission)"""
+    return await adk_service.restart_agent(agent_id)
+```
+
+---
+
+This complete architecture provides a modern, scalable foundation for GuardianOS that:
+
+1. **Leverages Latest Technologies**: React 19.1, Next.js 15.3.3, Tailwind v4, Bun 1.2.15
+2. **Integrates Existing Systems**: Seamless ADK agent bridge and FraudSentinel monitoring
+3. **Provides Real-time Collaboration**: WebSocket-based voting and monitoring
+4. **Ensures Enterprise Security**: LEI-based authentication, RBAC, audit trails
+5. **Scales for Production**: Microservices architecture, event-driven design
+6. **Enables Fast Development**: Modern patterns, strong typing, comprehensive testing
+
+The system is ready for immediate development and can serve as the foundation for both GuardianOS and future ComplianceOS integration.

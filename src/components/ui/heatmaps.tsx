@@ -13,21 +13,12 @@ export const background = '#28272c';
 const seededRandom = getSeededRandom(0.41);
 
 interface Bin {
-  id: string;
-  count: number;
   bin: number;
-  x0: number;
-  x1: number;
-  y0: number;
-  y1: number;
-  row: number;
-  column: number;
+  count: number;
 }
 
 interface Bins {
-  id: string;
-  x0: number;
-  x1: number;
+  bin: number;
   bins: Bin[];
 }
 

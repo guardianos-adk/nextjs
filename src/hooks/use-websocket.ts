@@ -3,9 +3,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { WebSocketEvent, EventType } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface UseWebSocketOptions {
   autoConnect?: boolean;
+  maxRetries?: number;
+  retryDelay?: number;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onError?: (error: Error) => void;
@@ -14,13 +17,16 @@ interface UseWebSocketOptions {
 interface UseWebSocketReturn {
   socket: Socket | null;
   isConnected: boolean;
-  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
+  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error' | 'failed';
   lastMessage: WebSocketEvent | null;
   sendMessage: (message: any) => void;
   subscribe: (eventType: EventType, handler: (data: any) => void) => void;
   unsubscribe: (eventType: EventType) => void;
   joinRoom: (room: string) => void;
   leaveRoom: (room: string) => void;
+  retryCount: number;
+  maxRetriesReached: boolean;
+  manualRetry: () => void;
 }
 
 export function useWebSocket(
@@ -29,6 +35,8 @@ export function useWebSocket(
 ): UseWebSocketReturn {
   const {
     autoConnect = true,
+    maxRetries = 3,
+    retryDelay = 5000,
     onConnect,
     onDisconnect,
     onError
@@ -36,16 +44,25 @@ export function useWebSocket(
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error' | 'failed'>('disconnected');
   const [lastMessage, setLastMessage] = useState<WebSocketEvent | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [maxRetriesReached, setMaxRetriesReached] = useState(false);
   
   const eventHandlers = useRef<Map<EventType, (data: any) => void>>(new Map());
   const socketRef = useRef<Socket | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:8000';
 
-  useEffect(() => {
-    if (!autoConnect) return;
+  const connectWithRetry = useCallback(() => {
+    if (maxRetriesReached || retryCount >= maxRetries) {
+      setConnectionStatus('failed');
+      setMaxRetriesReached(true);
+      console.warn(`WebSocket connection failed after ${maxRetries} attempts. Stopped retrying.`);
+      toast.error('Server connection failed. Please check your connection and try again later.');
+      return;
+    }
 
     setConnectionStatus('connecting');
 
@@ -68,6 +85,8 @@ export function useWebSocket(
       console.log('WebSocket connected:', newSocket.id);
       setIsConnected(true);
       setConnectionStatus('connected');
+      setRetryCount(0); // Reset retry count on successful connection
+      setMaxRetriesReached(false);
       onConnect?.();
     });
 
@@ -76,12 +95,38 @@ export function useWebSocket(
       setIsConnected(false);
       setConnectionStatus('disconnected');
       onDisconnect?.();
+      
+      // Only retry if it's not a manual disconnect and we haven't reached max retries
+      if (reason !== 'io client disconnect' && !maxRetriesReached && retryCount < maxRetries) {
+        retryTimeoutRef.current = setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          connectWithRetry();
+        }, retryDelay);
+      }
     });
 
     newSocket.on('connect_error', (error) => {
       console.error('WebSocket connection error:', error);
       setConnectionStatus('error');
+      setRetryCount(prev => prev + 1);
       onError?.(error as Error);
+      
+      // Clean up the failed socket
+      newSocket.close();
+      socketRef.current = null;
+      setSocket(null);
+      
+      // Retry if we haven't reached max retries
+      if (retryCount + 1 < maxRetries) {
+        retryTimeoutRef.current = setTimeout(() => {
+          connectWithRetry();
+        }, retryDelay);
+      } else {
+        setConnectionStatus('failed');
+        setMaxRetriesReached(true);
+        console.warn(`WebSocket connection failed after ${maxRetries} attempts. Stopped retrying.`);
+        toast.error('Server connection failed. Please check your connection and try again later.');
+      }
     });
 
     // Generic message handler
@@ -103,13 +148,24 @@ export function useWebSocket(
         }
       }
     });
+  }, [namespace, WEBSOCKET_URL, maxRetries, retryDelay, onConnect, onDisconnect, onError, retryCount, maxRetriesReached]);
+
+  useEffect(() => {
+    if (!autoConnect) return;
+
+    connectWithRetry();
 
     return () => {
       console.log('Cleaning up WebSocket connection');
-      newSocket.close();
-      socketRef.current = null;
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
     };
-  }, [namespace, autoConnect, onConnect, onDisconnect, onError, WEBSOCKET_URL]);
+  }, [autoConnect, connectWithRetry]);
 
   const sendMessage = useCallback((message: any) => {
     if (socketRef.current?.connected) {
@@ -141,6 +197,30 @@ export function useWebSocket(
     }
   }, []);
 
+  const manualRetry = useCallback(() => {
+    if (maxRetriesReached || connectionStatus === 'failed') {
+      // Reset retry state and attempt reconnection
+      setRetryCount(0);
+      setMaxRetriesReached(false);
+      setConnectionStatus('disconnected');
+      
+      // Clear any existing timeouts
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      
+      // Clean up existing socket
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+        setSocket(null);
+      }
+      
+      // Attempt new connection
+      connectWithRetry();
+    }
+  }, [maxRetriesReached, connectionStatus, connectWithRetry]);
+
   return {
     socket,
     isConnected,
@@ -151,6 +231,9 @@ export function useWebSocket(
     unsubscribe,
     joinRoom,
     leaveRoom,
+    retryCount,
+    maxRetriesReached,
+    manualRetry,
   };
 }
 

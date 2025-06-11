@@ -3,12 +3,20 @@ import { BarStackHorizontal } from '@visx/shape';
 import { SeriesPoint } from '@visx/shape/lib/types';
 import { Group } from '@visx/group';
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import { cityTemperature, CityTemperature } from '@visx/mock-data';
+import { cityTemperature } from '@visx/mock-data';
 import { scaleBand, scaleLinear, scaleOrdinal } from '@visx/scale';
 import { timeParse, timeFormat } from '@visx/vendor/d3-time-format';
 import { withTooltip, Tooltip, defaultStyles } from '@visx/tooltip';
 import { WithTooltipProvidedProps } from '@visx/tooltip/lib/enhancers/withTooltip';
 import { LegendOrdinal } from '@visx/legend';
+
+// Define the CityTemperature type based on the actual data structure
+interface CityTemperature {
+  date: string;
+  'New York': string;
+  'San Francisco': string;
+  'Austin': string;
+}
 
 type CityName = 'New York' | 'San Francisco' | 'Austin';
 

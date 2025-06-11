@@ -1,1 +1,155 @@
-"use client";\n\nimport * as React from "react";\nimport { Check, ChevronsUpDown, Shield, User } from "lucide-react";\n\nimport {\n  DropdownMenu,\n  DropdownMenuContent,\n  DropdownMenuItem,\n  DropdownMenuLabel,\n  DropdownMenuSeparator,\n  DropdownMenuShortcut,\n  DropdownMenuTrigger,\n} from "@/components/ui/dropdown-menu";\nimport {\n  SidebarMenu,\n  SidebarMenuButton,\n  SidebarMenuItem,\n  useSidebar,\n} from "@/components/ui/sidebar";\nimport { Guardian } from "@/lib/types";\nimport { cn } from "@/lib/utils";\n\ninterface GuardianSwitcherProps {\n  guardian?: Guardian;\n}\n\nexport function GuardianSwitcher({ guardian }: GuardianSwitcherProps) {\n  const { isMobile } = useSidebar();\n\n  if (!guardian) {\n    return (\n      <SidebarMenu>\n        <SidebarMenuItem>\n          <SidebarMenuButton\n            size="lg"\n            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"\n          >\n            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">\n              <Shield className="size-4" />\n            </div>\n            <div className="grid flex-1 text-left text-sm leading-tight">\n              <span className="truncate font-semibold">GuardianOS</span>\n              <span className="truncate text-xs text-muted-foreground">\n                No Guardian Connected\n              </span>\n            </div>\n          </SidebarMenuButton>\n        </SidebarMenuItem>\n      </SidebarMenu>\n    );\n  }\n\n  const jurisdictionColors = {\n    ECB: "bg-blue-500",\n    DNB: "bg-orange-500", \n    BaFin: "bg-red-500",\n    FINMA: "bg-green-500",\n    FCA: "bg-purple-500",\n    SEC: "bg-indigo-500",\n    CFTC: "bg-yellow-500",\n    FinCEN: "bg-pink-500",\n    AUSTRAC: "bg-teal-500",\n    JFSA: "bg-cyan-500",\n  };\n\n  const jurisdictionColor = jurisdictionColors[guardian.jurisdiction as keyof typeof jurisdictionColors] || "bg-gray-500";\n\n  return (\n    <SidebarMenu>\n      <SidebarMenuItem>\n        <DropdownMenu>\n          <DropdownMenuTrigger asChild>\n            <SidebarMenuButton\n              size="lg"\n              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"\n            >\n              <div className={cn(\n                "flex aspect-square size-8 items-center justify-center rounded-lg text-white",\n                jurisdictionColor\n              )}>\n                <Shield className="size-4" />\n              </div>\n              <div className="grid flex-1 text-left text-sm leading-tight">\n                <span className="truncate font-semibold">\n                  {guardian.institutionName}\n                </span>\n                <span className="truncate text-xs text-muted-foreground">\n                  {guardian.jurisdiction} • Score: {guardian.reputationScore.toFixed(1)}\n                </span>\n              </div>\n              <ChevronsUpDown className="ml-auto size-4" />\n            </SidebarMenuButton>\n          </DropdownMenuTrigger>\n          <DropdownMenuContent\n            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"\n            side={isMobile ? "bottom" : "right"}\n            align="end"\n            sideOffset={4}\n          >\n            <DropdownMenuLabel className="p-0 font-normal">\n              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">\n                <div className={cn(\n                  "flex aspect-square size-8 items-center justify-center rounded-lg text-white",\n                  jurisdictionColor\n                )}>\n                  <Shield className="size-4" />\n                </div>\n                <div className="grid flex-1 text-left text-sm leading-tight">\n                  <span className="truncate font-semibold">\n                    {guardian.institutionName}\n                  </span>\n                  <span className="truncate text-xs text-muted-foreground">\n                    {guardian.jurisdiction}\n                  </span>\n                </div>\n              </div>\n            </DropdownMenuLabel>\n            <DropdownMenuSeparator />\n            \n            <DropdownMenuItem className="gap-2">\n              <User className="size-4" />\n              Guardian Profile\n              <DropdownMenuShortcut>⌘P</DropdownMenuShortcut>\n            </DropdownMenuItem>\n            \n            <DropdownMenuSeparator />\n            \n            <DropdownMenuItem className="gap-2 text-xs text-muted-foreground">\n              <div className="grid w-full">\n                <div className="flex justify-between">\n                  <span>LEI Code:</span>\n                  <span className="font-mono">{guardian.leiCode}</span>\n                </div>\n                <div className="flex justify-between">\n                  <span>Voting Power:</span>\n                  <span>{guardian.votingPower}</span>\n                </div>\n                <div className="flex justify-between">\n                  <span>Status:</span>\n                  <span className={cn(\n                    "font-medium",\n                    guardian.isActive ? "text-green-600" : "text-red-600"\n                  )}>\n                    {guardian.isActive ? "Active" : "Inactive"}\n                  </span>\n                </div>\n              </div>\n            </DropdownMenuItem>\n          </DropdownMenuContent>\n        </DropdownMenu>\n      </SidebarMenuItem>\n    </SidebarMenu>\n  );\n}\n
+"use client";
+
+import * as React from "react";
+import { Check, ChevronsUpDown, Shield, User } from "lucide-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { Guardian } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+interface GuardianSwitcherProps {
+  guardian?: Guardian;
+}
+
+export function GuardianSwitcher({ guardian }: GuardianSwitcherProps) {
+  const { isMobile } = useSidebar();
+
+  if (!guardian) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            size="lg"
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          >
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <Shield className="size-4" />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">GuardianOS</span>
+              <span className="truncate text-xs text-muted-foreground">
+                No Guardian Connected
+              </span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
+
+  const jurisdictionColors = {
+    ECB: "bg-blue-500",
+    DNB: "bg-orange-500", 
+    BaFin: "bg-red-500",
+    FINMA: "bg-green-500",
+    FCA: "bg-purple-500",
+    SEC: "bg-indigo-500",
+    CFTC: "bg-yellow-500",
+    FinCEN: "bg-pink-500",
+    AUSTRAC: "bg-teal-500",
+    JFSA: "bg-cyan-500",
+  };
+
+  const jurisdictionColor = jurisdictionColors[guardian.jurisdiction as keyof typeof jurisdictionColors] || "bg-gray-500";
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <div className={cn(
+                "flex aspect-square size-8 items-center justify-center rounded-lg text-white",
+                jurisdictionColor
+              )}>
+                <Shield className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">
+                  {guardian.institutionName}
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
+                  {guardian.jurisdiction} • Score: {guardian.reputationScore.toFixed(1)}
+                </span>
+              </div>
+              <ChevronsUpDown className="ml-auto size-4" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            side={isMobile ? "bottom" : "right"}
+            align="end"
+            sideOffset={4}
+          >
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <div className={cn(
+                  "flex aspect-square size-8 items-center justify-center rounded-lg text-white",
+                  jurisdictionColor
+                )}>
+                  <Shield className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">
+                    {guardian.institutionName}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {guardian.jurisdiction}
+                  </span>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem className="gap-2">
+              <User className="size-4" />
+              Guardian Profile
+              <DropdownMenuShortcut>⌘P</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem className="gap-2 text-xs text-muted-foreground">
+              <div className="grid w-full">
+                <div className="flex justify-between">
+                  <span>LEI Code:</span>
+                  <span className="font-mono">{guardian.leiCode}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Voting Power:</span>
+                  <span>{guardian.votingPower}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className={cn(
+                    "font-medium",
+                    guardian.isActive ? "text-green-600" : "text-red-600"
+                  )}>
+                    {guardian.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  );
+}

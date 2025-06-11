@@ -12,7 +12,13 @@ import {
   treemapSliceDice,
 } from '@visx/hierarchy';
 import { TileMethod } from '@visx/hierarchy/lib/types';
-import { shakespeare, Shakespeare } from '@visx/mock-data';
+import { shakespeare } from '@visx/mock-data';
+
+interface ShakespeareData {
+  id: string;
+  parent: string | null;
+  size: number | null;
+}
 import { scaleLinear } from '@visx/scale';
 
 export const color1 = '#f3e9d2';
@@ -24,7 +30,7 @@ const colorScale = scaleLinear<string>({
   range: [color2, color1],
 });
 
-const data = stratify<Shakespeare>()
+const data = stratify<ShakespeareData>()
   .id((d) => d.id)
   .parentId((d) => d.parent)(shakespeare)
   .sum((d) => d.size ?? 0);

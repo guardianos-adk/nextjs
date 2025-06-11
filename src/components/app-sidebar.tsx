@@ -38,7 +38,6 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { useGuardianAuth } from "@/hooks/use-guardian";
 
 // Guardian navigation data

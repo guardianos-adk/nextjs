@@ -1,7 +1,6 @@
 import { 
   Guardian, 
   DeAnonymizationRequest, 
-  Vote, 
   ADKAgent, 
   SentinelMetrics, 
   Alert, 
@@ -27,35 +26,74 @@ class ApiClient {
   }
 
   private async request<T>(
-    endpoint: string, 
+    url: string, 
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseUrl}${endpoint}`;
-    
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
-
     try {
-      const response = await fetch(url, {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...options.headers as Record<string, string>,
+      };
+
+      if (this.token) {
+        headers.Authorization = `Bearer ${this.token}`;
+      }
+
+      const response = await fetch(`${this.baseUrl}${url}`, {
         ...options,
         headers,
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Handle specific HTTP errors
+        if (response.status === 401) {
+          // Clear invalid token
+          this.token = null;
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('guardian_token');
+          }
+          throw new Error('Authentication failed. Please log in again.');
+        }
+        
+        if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        
+        throw new Error(`Request failed with status ${response.status}`);
       }
 
       const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error(`API request failed: ${url}`, error);
-      throw error;
+      return { 
+        success: true, 
+        data,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error: any) {
+      console.error('API request failed:', url, error);
+      
+      // Handle network errors
+      if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+        return { 
+          success: false, 
+          error: 'Request timeout. Please check your connection and try again.',
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      if (error.message?.includes('fetch')) {
+        return { 
+          success: false, 
+          error: 'Network error. Please check your connection and try again.',
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      return { 
+        success: false, 
+        error: error.message || 'An unexpected error occurred',
+        timestamp: new Date().toISOString()
+      };
     }
   }
 
@@ -212,6 +250,10 @@ class ApiClient {
   }>> {
     return this.get('/api/v1/dashboard/health');
   }
+
+  async getRecentActivity(): Promise<ApiResponse<any[]>> {
+    return this.get<any[]>('/api/v1/dashboard/activity');
+  }
 }
 
 // Create singleton instance
@@ -256,6 +298,7 @@ export const sentinelApi = {
 export const dashboardApi = {
   getOverview: () => apiClient.getDashboardOverview(),
   getSystemHealth: () => apiClient.getSystemHealth(),
+  getRecentActivity: () => apiClient.getRecentActivity(),
 };
 
 export default apiClient;

@@ -230,7 +230,9 @@ export type EventType =
   | 'FRAUD_DETECTED'
   | 'PERFORMANCE_ALERT'
   | 'SYSTEM_HEALTH_CHANGE'
-  | 'METRICS_UPDATE';
+  | 'METRICS_UPDATE'
+  // Activity events
+  | 'ACTIVITY_UPDATE';
 
 // API Response Types
 export interface ApiResponse<T> {

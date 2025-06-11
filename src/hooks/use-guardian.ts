@@ -388,3 +388,58 @@ export function useGuardianDirectory() {
     isLoading,
   };
 }
+
+// Guardian Activity Hook
+export function useGuardianActivity() {
+  const queryClient = useQueryClient();
+  const { subscribe, unsubscribe } = useWebSocket('/activity');
+
+  // Real-time activity updates
+  useEffect(() => {
+    const handleActivityUpdate = (data: any) => {
+      queryClient.setQueryData(['guardian', 'activity'], (old: any[] = []) => [
+        data.activity,
+        ...old.slice(0, 49), // Keep last 50 activities
+      ]);
+    };
+
+    subscribe('ACTIVITY_UPDATE', handleActivityUpdate);
+    subscribe('NEW_REQUEST', handleActivityUpdate);
+    subscribe('VOTE_SUBMITTED', handleActivityUpdate);
+    subscribe('CONSENSUS_REACHED', handleActivityUpdate);
+
+    return () => {
+      unsubscribe('ACTIVITY_UPDATE');
+      unsubscribe('NEW_REQUEST');
+      unsubscribe('VOTE_SUBMITTED');
+      unsubscribe('CONSENSUS_REACHED');
+    };
+  }, [subscribe, unsubscribe, queryClient]);
+
+  const { data: recentActivity, isLoading } = useQuery({
+    queryKey: ['guardian', 'activity'],
+    queryFn: async () => {
+      const response = await dashboardApi.getRecentActivity();
+      return response.data || [];
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 1000 * 60, // 1 minute
+  });
+
+  return {
+    recentActivity: recentActivity || [],
+    isLoading,
+  };
+}
+
+// Combined Guardian Hook for Common Use Cases
+export function useGuardian() {
+  const auth = useGuardianAuth();
+  const sentinel = useSentinel();
+  
+  return {
+    ...auth,
+    systemStatus: sentinel.systemStatus,
+    alerts: sentinel.alerts,
+  };
+}

@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
 import { AreaClosed, Line, Bar } from '@visx/shape';
-import { appleStock, AppleStock } from '@visx/mock-data'; // ИСПРАВЛЕНО ЗДЕСЬ
+import { appleStock } from '@visx/mock-data';
 import { curveMonotoneX } from '@visx/curve';
 import { GridRows, GridColumns } from '@visx/grid';
 import { scaleTime, scaleLinear } from '@visx/scale';
@@ -10,6 +10,12 @@ import { localPoint } from '@visx/event';
 import { LinearGradient } from '@visx/gradient';
 import { max, extent, bisector } from '@visx/vendor/d3-array';
 import { timeFormat } from '@visx/vendor/d3-time-format';
+
+// Define the AppleStock type based on the actual data structure
+interface AppleStock {
+  date: string;
+  close: number;
+}
 
 type TooltipData = AppleStock;
 
@@ -47,8 +53,6 @@ const ComponentLogic = ({
   tooltipTop = 0,
   tooltipLeft = 0,
 }: ComponentProps & WithTooltipProvidedProps<TooltipData>) => {
-  if (width < 10) return null;
-
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
@@ -89,6 +93,8 @@ const ComponentLogic = ({
     },
     [showTooltip, stockValueScale, dateScale],
   );
+
+  if (width < 10) return null;
 
   return (
     <div>
