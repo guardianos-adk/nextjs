@@ -322,6 +322,48 @@ class ApiClient {
 // Singleton instance
 export const apiClient = new ApiClient();
 
+// Export specific API groups for cleaner imports in hooks
+export const guardianApi = {
+  getCurrentGuardian: () => apiClient.getCurrentGuardian(),
+  getAllGuardians: () => apiClient.getAllGuardians(),
+  updateProfile: (updates: Partial<Guardian>) => apiClient.updateGuardianProfile(updates),
+  login: (leiCode: string, certificate: string) => apiClient.login(leiCode, certificate),
+  logout: () => apiClient.logout(),
+};
+
+export const votingApi = {
+  getActiveRequests: () => apiClient.getActiveRequests(),
+  getRequest: (requestId: string) => apiClient.getRequest(requestId),
+  submitVote: (requestId: string, voteData: VoteFormData) => apiClient.submitVote(requestId, voteData),
+  createRequest: (requestData: any) => apiClient.createRequest(requestData),
+  getVotingHistory: (page?: number, pageSize?: number) => apiClient.getVotingHistory(page, pageSize),
+};
+
+export const agentApi = {
+  getAllAgentsStatus: () => apiClient.getAllAgentsStatus(),
+  getAgentStatus: (agentId: string) => apiClient.getAgentStatus(agentId),
+  restartAgent: (agentId: string) => apiClient.restartAgent(agentId),
+  getActiveWorkflows: () => apiClient.getActiveWorkflows(),
+  triggerWorkflow: (workflowType: string, inputData: any) => apiClient.triggerWorkflow(workflowType, inputData),
+  getAgentLogs: (agentId: string, limit?: number) => apiClient.getAgentLogs(agentId, limit),
+};
+
+export const sentinelApi = {
+  getSentinelStatus: () => apiClient.getSentinelStatus(),
+  getCurrentMetrics: () => apiClient.getCurrentMetrics(),
+  getHistoricalMetrics: (startDate: string, endDate: string, granularity?: string) => 
+    apiClient.getHistoricalMetrics(startDate, endDate, granularity),
+  getPerformanceReport: (days?: number) => apiClient.getPerformanceReport(days),
+  getActiveAlerts: (severity?: string) => apiClient.getActiveAlerts(severity),
+  acknowledgeAlert: (alertId: string) => apiClient.acknowledgeAlert(alertId),
+};
+
+export const dashboardApi = {
+  getDashboardOverview: () => apiClient.getDashboardOverview(),
+  getSystemHealth: () => apiClient.getSystemHealth(),
+  getRecentActivity: () => apiClient.getRecentActivity(),
+};
+
 // WebSocket connection for real-time updates
 export class GuardianWebSocket {
   private ws: WebSocket | null = null;

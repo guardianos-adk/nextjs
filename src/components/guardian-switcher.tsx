@@ -86,7 +86,7 @@ export function GuardianSwitcher({ guardian }: GuardianSwitcherProps) {
                   {guardian.institutionName}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {guardian.jurisdiction} • Score: {guardian.reputationScore.toFixed(1)}
+                  {guardian.jurisdiction} • Score: {guardian.reputationScore?.toFixed(1) || 'N/A'}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />

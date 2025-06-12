@@ -155,7 +155,7 @@ export function SystemHealthWidget() {
     );
   }
 
-  // Mock data for demonstration
+  // Mock data for demonstration with safe fallbacks
   const health = systemHealth || {
     agents: { healthy: 5, total: 6 },
     consensus: { successRate: 94.7, avgTime: 2.3 },
@@ -163,40 +163,46 @@ export function SystemHealthWidget() {
     alerts: { active: 2, critical: 0 }
   };
 
+  // Ensure all nested objects exist with safe defaults
+  const safeAgents = health.agents || { healthy: 0, total: 0 };
+  const safeConsensus = health.consensus || { successRate: 0, avgTime: 0 };
+  const safeThroughput = health.throughput || { current: 0, capacity: 100 };
+  const safeAlerts = health.alerts || { active: 0, critical: 0 };
+
   const healthMetrics: HealthMetric[] = [
     {
       label: "Agent Health",
-      value: health.agents.healthy,
-      maxValue: health.agents.total,
-      status: health.agents.healthy / health.agents.total > 0.8 ? "healthy" : "warning",
+      value: safeAgents.healthy,
+      maxValue: safeAgents.total || 1, // Prevent division by zero
+      status: (safeAgents.total > 0 && safeAgents.healthy / safeAgents.total > 0.8) ? "healthy" : "warning",
       icon: <Cpu className="h-4 w-4" />
     },
     {
-      label: "System Throughput",
-      value: health.throughput.current,
-      maxValue: health.throughput.capacity,
-      status: health.throughput.current / health.throughput.capacity > 0.7 ? "healthy" : "warning",
+      label: "System Throughput", 
+      value: safeThroughput.current,
+      maxValue: safeThroughput.capacity || 100, // Prevent division by zero
+      status: (safeThroughput.capacity > 0 && safeThroughput.current / safeThroughput.capacity > 0.7) ? "healthy" : "warning",
       icon: <Database className="h-4 w-4" />
     },
     {
       label: "Network Consensus",
-      value: Math.round(health.consensus.successRate),
+      value: Math.round(safeConsensus.successRate),
       maxValue: 100,
-      status: health.consensus.successRate > 90 ? "healthy" : "warning",
+      status: safeConsensus.successRate > 90 ? "healthy" : "warning",
       icon: <Network className="h-4 w-4" />
     },
     {
       label: "Response Time",
-      value: Math.round(health.consensus.avgTime),
+      value: Math.round(safeConsensus.avgTime),
       maxValue: 10,
-      status: health.consensus.avgTime < 5 ? "healthy" : "warning",
+      status: safeConsensus.avgTime < 5 ? "healthy" : "warning",
       icon: <Clock className="h-4 w-4" />
     }
   ];
 
-  const overallStatus = health.alerts.critical > 0 
+  const overallStatus = safeAlerts.critical > 0 
     ? "critical" 
-    : health.agents.healthy / health.agents.total < 0.8 
+    : (safeAgents.total > 0 && safeAgents.healthy / safeAgents.total < 0.8)
     ? "warning" 
     : "healthy";
 
@@ -251,15 +257,15 @@ export function SystemHealthWidget() {
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-4 pt-2 border-t border-border/50">
             <div className="text-center">
-              <p className="text-lg font-bold text-emerald-500">{health.agents.healthy}</p>
+              <p className="text-lg font-bold text-emerald-500">{safeAgents.healthy}</p>
               <p className="text-xs text-muted-foreground">Healthy Agents</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-bold text-blue-500">{health.consensus.successRate.toFixed(1)}%</p>
+              <p className="text-lg font-bold text-blue-500">{safeConsensus.successRate.toFixed(1)}%</p>
               <p className="text-xs text-muted-foreground">Consensus Rate</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-bold text-amber-500">{health.alerts.active}</p>
+              <p className="text-lg font-bold text-amber-500">{safeAlerts.active}</p>
               <p className="text-xs text-muted-foreground">Active Alerts</p>
             </div>
           </div>

@@ -31,7 +31,7 @@ import {
 import { cn } from '@/lib/utils';
 import { 
   useGuardianStore, 
-  useConnectionState, 
+  useConnectionStatus, 
   useDashboardState,
   useVotingState,
   useAgentsState,
@@ -150,7 +150,7 @@ export function GuardianStatusDashboard() {
 function SystemHealthBanner() {
   const systemHealth = useSystemHealth();
   const isOnline = useIsOnline();
-  const connectionState = useConnectionState();
+  const connectionState = useConnectionStatus();
 
   const getHealthColor = () => {
     if (systemHealth === 'healthy') return 'text-green-600 bg-green-50 border-green-200';
