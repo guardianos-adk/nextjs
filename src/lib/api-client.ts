@@ -9,6 +9,7 @@ import {
   PaginatedResponse,
   VoteFormData
 } from '@/lib/types';
+import { mockBackend } from './mock-backend';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
@@ -81,10 +82,16 @@ class ApiClient {
         };
       }
       
-      if (error.message?.includes('fetch')) {
+      if (error.message?.includes('fetch') || error.message?.includes('Connection refused')) {
+        // Enable mock backend for network failures
+        if (!mockBackend.isActive()) {
+          console.warn('🔄 Network failure detected, enabling mock backend');
+          mockBackend.enable();
+        }
+        
         return { 
           success: false, 
-          error: 'Network error. Please check your connection and try again.',
+          error: 'Network error. Operating in offline mode with demo data.',
           timestamp: new Date().toISOString()
         };
       }

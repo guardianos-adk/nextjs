@@ -170,12 +170,12 @@ interface ANKRConfig {
       }
     }
   
-    async getAddressTransactions(address: string, blockchain: string, limit: number = 100): Promise<TransactionDetails[]> {
-      const endpoint = this.config.endpoints[blockchain];
-      
-      try {
-        // Use ANKR's advanced API to get address transactions
-        const response = await fetch(`${endpoint.replace('/rpc', '/multichain')}/getTransactionsByAddress`, {
+      async getAddressTransactions(address: string, blockchain: string, limit: number = 100): Promise<TransactionDetails[]> {
+    try {
+      // Use ANKR's multichain API with correct endpoint
+      const multichainEndpoint = `https://rpc.ankr.com/multichain/${this.config.apiKey}`;
+        
+        const response = await fetch(multichainEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -184,12 +184,16 @@ interface ANKRConfig {
             params: {
               address: address.toLowerCase(),
               blockchain: [blockchain],
-              pageSize: limit,
+              pageSize: Math.min(limit, 50), // ANKR limit is typically 50
               pageToken: ''
             },
             id: 1
           })
         });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
   
         const data = await response.json();
         
@@ -197,9 +201,15 @@ interface ANKRConfig {
           throw new Error(`ANKR API Error: ${data.error.message}`);
         }
   
+        // If ANKR multichain doesn't work, fall back to standard RPC
+        if (!data.result || !data.result.transactions) {
+          console.warn(`Multichain API failed for ${blockchain}, using fallback method`);
+          return await this.getAddressTransactionsFallback(address, blockchain, limit);
+        }
+  
         // Process each transaction to get full details
         const transactions = await Promise.all(
-          (data.result as ANKRTransactionResult).transactions.map(async (tx: { hash: string; blockchain: string }) => {
+          (data.result as ANKRTransactionResult).transactions.slice(0, limit).map(async (tx: { hash: string; blockchain: string }) => {
             return this.getTransactionDetails(tx.hash, blockchain);
           })
         );
@@ -208,7 +218,66 @@ interface ANKRConfig {
   
       } catch (error) {
         console.error(`Error fetching transactions for ${address} on ${blockchain}:`, error);
-        throw error;
+        // Try fallback method
+        return await this.getAddressTransactionsFallback(address, blockchain, limit);
+      }
+    }
+  
+      async getAddressTransactionsFallback(address: string, blockchain: string, limit: number): Promise<TransactionDetails[]> {
+    /**
+     * Fallback method to get address transactions using standard RPC calls
+     * This is less efficient but works when multichain API is unavailable
+     */
+    
+    const endpoint = this.config.endpoints[blockchain];
+    const transactions: TransactionDetails[] = [];
+    
+    try {
+      // Get latest block number
+      const latestBlockHex = await this.rpcCall(endpoint, 'eth_blockNumber', []) as string;
+      const latestBlock = parseInt(latestBlockHex, 16);
+      
+      // Search through recent blocks for transactions involving this address
+      const searchDepth = Math.min(100, limit * 2); // Search last 100 blocks
+      
+      for (let i = 0; i < searchDepth && transactions.length < limit; i++) {
+        const blockNumber = latestBlock - i;
+        
+        try {
+          const block = await this.rpcCall(endpoint, 'eth_getBlockByNumber', [`0x${blockNumber.toString(16)}`, true]) as {
+            transactions: Array<{
+              hash: string;
+              from: string;
+              to: string;
+            }>;
+          };
+            
+            if (block && block.transactions) {
+              for (const tx of block.transactions) {
+                if (transactions.length >= limit) break;
+                
+                if (tx.from?.toLowerCase() === address.toLowerCase() || 
+                    tx.to?.toLowerCase() === address.toLowerCase()) {
+                  
+                  try {
+                    const txDetails = await this.getTransactionDetails(tx.hash, blockchain);
+                    transactions.push(txDetails);
+                  } catch (error) {
+                    console.warn(`Failed to get details for tx ${tx.hash}:`, error);
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to get block ${blockNumber}:`, error);
+          }
+        }
+        
+        return transactions;
+        
+      } catch (error) {
+        console.error(`Fallback method also failed for ${address} on ${blockchain}:`, error);
+        return [];
       }
     }
   
@@ -230,18 +299,21 @@ interface ANKRConfig {
         if (level >= depth) continue;
         
         try {
-          // Get transactions for current address
-          const transactions = await this.getAddressTransactions(currentAddr, blockchain, 1000);
+          // Get transactions for current address (limit for performance)
+          const transactions = await this.getAddressTransactions(currentAddr, blockchain, 20);
           
           for (const tx of transactions) {
             const connectedAddr = tx.from.toLowerCase() === currentAddr ? tx.to : tx.from;
             
             if (connectedAddr && !visitedAddresses.has(connectedAddr)) {
               // Add to cluster if significant interaction
-              const value = BigInt(tx.value);
-              if (value > BigInt('1000000000000000000')) { // > 1 ETH equivalent
+              const value = BigInt(tx.value || '0');
+              if (value > BigInt('100000000000000000')) { // > 0.1 ETH equivalent
                 visitedAddresses.add(connectedAddr);
-                queue.push({address: connectedAddr, level: level + 1});
+                
+                if (level < depth - 1) { // Only add to queue if we haven't reached max depth
+                  queue.push({address: connectedAddr, level: level + 1});
+                }
               }
             }
             
@@ -250,7 +322,7 @@ interface ANKRConfig {
             const existing = connections.get(connectionKey) || {frequency: 0, totalValue: BigInt(0)};
             connections.set(connectionKey, {
               frequency: existing.frequency + 1,
-              totalValue: existing.totalValue + BigInt(tx.value)
+              totalValue: existing.totalValue + BigInt(tx.value || '0')
             });
           }
           
@@ -330,6 +402,10 @@ interface ANKRConfig {
         })
       });
   
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+  
       const data = await response.json();
       
       if (data.error) {
@@ -371,7 +447,7 @@ interface ANKRConfig {
       const indicators: RiskIndicator[] = [];
       
       // High value transaction
-      const value = BigInt(transaction.value);
+      const value = BigInt(transaction.value || '0');
       if (value > BigInt('50000000000000000000')) { // > 50 ETH
         indicators.push({
           type: 'high_value',

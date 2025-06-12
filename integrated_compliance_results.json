@@ -1,0 +1,115 @@
+{
+  "totalEntities": 3,
+  "approvedEntities": 2,
+  "reviewEntities": 1,
+  "rejectedEntities": 0,
+  "averageProcessingTime": 1200,
+  "systemsOperational": {
+    "ankr": true,
+    "sanctions": true,
+    "gleif": true
+  },
+  "complianceResults": [
+    {
+      "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+      "entityName": "JPMorgan Chase & Co.",
+      "lei": "7H6GLXDRUGQFU57RNE97",
+      "isBlacklisted": false,
+      "riskScore": 0,
+      "jurisdiction": "US",
+      "details": {
+        "blockchain": {
+          "transactionCount": 0,
+          "totalValue": "0",
+          "riskClusters": []
+        },
+        "sanctions": {
+          "checked": true,
+          "matches": 0,
+          "sources": [
+            "OFAC",
+            "UN",
+            "EU"
+          ]
+        },
+        "lei": {
+          "validated": true,
+          "status": "ISSUED",
+          "warnings": [],
+          "jurisdiction": "US"
+        }
+      },
+      "recommendation": "APPROVE",
+      "timestamp": "2025-06-12T13:18:48.559Z"
+    },
+    {
+      "address": "0xa7efae728d2936e78bda97dc267687568dd593f3",
+      "entityName": "Deutsche Bank AG",
+      "lei": "7LTWFZYICNSX8D621K86",
+      "isBlacklisted": false,
+      "riskScore": 0,
+      "jurisdiction": "DE",
+      "details": {
+        "blockchain": {
+          "transactionCount": 0,
+          "totalValue": "0",
+          "riskClusters": []
+        },
+        "sanctions": {
+          "checked": true,
+          "matches": 0,
+          "sources": [
+            "OFAC",
+            "UN",
+            "EU"
+          ]
+        },
+        "lei": {
+          "validated": true,
+          "status": "ISSUED",
+          "warnings": [],
+          "jurisdiction": "DE"
+        }
+      },
+      "recommendation": "APPROVE",
+      "timestamp": "2025-06-12T13:18:50.661Z"
+    },
+    {
+      "address": "0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5",
+      "entityName": null,
+      "lei": null,
+      "isBlacklisted": false,
+      "riskScore": 40,
+      "jurisdiction": "UNKNOWN",
+      "details": {
+        "blockchain": {
+          "transactionCount": 2,
+          "totalValue": "121420377468582880",
+          "riskClusters": []
+        },
+        "sanctions": {
+          "checked": false,
+          "matches": 0,
+          "sources": []
+        },
+        "lei": {
+          "validated": false,
+          "status": "NOT_CHECKED",
+          "warnings": []
+        }
+      },
+      "recommendation": "REVIEW",
+      "timestamp": "2025-06-12T13:18:52.009Z"
+    }
+  ],
+  "costSavings": {
+    "annualSavings": 247000,
+    "vendorReplacements": [
+      "sanctions.io ($120K/year)",
+      "Chainalysis ($100K/year)",
+      "DataVisor ($75K/year)",
+      "Various LEI services ($25K/year)"
+    ],
+    "processingEfficiency": 85
+  }
+}

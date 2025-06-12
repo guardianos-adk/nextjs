@@ -1,0 +1,193 @@
+{
+  "totalTests": 9,
+  "successfulTests": 8,
+  "failedTests": 1,
+  "averageResponseTime": 259,
+  "results": [
+    {
+      "test": "LEI Validation - Known Valid LEI",
+      "success": true,
+      "duration": 382,
+      "details": {
+        "lei": "529900W18LQJJN6SJ336",
+        "entityName": "Société Générale Effekten GmbH",
+        "jurisdiction": "DE",
+        "status": "ACTIVE",
+        "registrationStatus": "ISSUED",
+        "confidence": 1,
+        "warnings": []
+      }
+    },
+    {
+      "test": "Entity Search by Exact Name",
+      "success": true,
+      "duration": 238,
+      "details": {
+        "searchTerm": "Apple Inc.",
+        "resultCount": 5,
+        "entities": [
+          {
+            "lei": "HWUPKR0MPOU8FGXBT394",
+            "name": "Apple Inc.",
+            "jurisdiction": "US-CA",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "254900KZR24L5GN8TE52",
+            "name": "Apple Ford, Inc.",
+            "jurisdiction": "US-DE",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "254900TWD71M3MX9I453",
+            "name": "Apple Management Inc.",
+            "jurisdiction": "PA",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "549300WV2Z00JXQ5YJ24",
+            "name": "GOLDEN APPLE INC",
+            "jurisdiction": "SC",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "549300OFQZDF71H5ZN34",
+            "name": "APPLE QUEST, INC.",
+            "jurisdiction": "US-MI",
+            "status": "ACTIVE"
+          }
+        ]
+      }
+    },
+    {
+      "test": "Fuzzy Name Matching",
+      "success": false,
+      "duration": 333,
+      "details": {
+        "searchTerm": "Microsoft",
+        "resultCount": 0
+      },
+      "error": "No fuzzy search results returned"
+    },
+    {
+      "test": "BIC to LEI Mapping",
+      "success": true,
+      "duration": 203,
+      "details": {
+        "bic": "DEUTDEFFXXX",
+        "lei": "7LTWFZYICNSX8D621K86",
+        "entityName": "DEUTSCHE BANK AKTIENGESELLSCHAFT",
+        "jurisdiction": "DE",
+        "status": "ACTIVE"
+      }
+    },
+    {
+      "test": "Invalid LEI Handling",
+      "success": true,
+      "duration": 55,
+      "details": {
+        "lei": "INVALID1234567890XX",
+        "status": "NOT_FOUND",
+        "warnings": [
+          "LEI not found in GLEIF database"
+        ]
+      }
+    },
+    {
+      "test": "Entity Relationships",
+      "success": true,
+      "duration": 420,
+      "details": {
+        "lei": "529900W18LQJJN6SJ336",
+        "hasDirectParent": false,
+        "hasUltimateParent": false,
+        "directChildrenCount": 0
+      }
+    },
+    {
+      "test": "Country-based Search",
+      "success": true,
+      "duration": 207,
+      "details": {
+        "countryCode": "DE",
+        "resultCount": 5,
+        "entities": [
+          {
+            "lei": "2549007E88Z7ZY2F8J59",
+            "name": "HPF Capital UG (haftungsbeschränkt",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "391200UZIYDJSZ90PR96",
+            "name": "Wassertechnik Kompakt GmbH",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "984500D7L1X95E68CC56",
+            "name": "DH Holding GmbH",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "984500G1C985A673E354",
+            "name": "J.F. Carthaus GmbH & Co KG",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "529900AIT5ZJR6EAHS30",
+            "name": "Münch Energie GmbH & Co. KG",
+            "status": "ACTIVE"
+          }
+        ]
+      }
+    },
+    {
+      "test": "Batch LEI Validation",
+      "success": true,
+      "duration": 205,
+      "details": {
+        "totalLEIs": 3,
+        "validLEIs": 2,
+        "invalidLEIs": 1,
+        "results": [
+          {
+            "lei": "529900W18LQJJN6SJ336",
+            "valid": true,
+            "entityName": "Société Générale Effekten GmbH",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "7LTWFZYICNSX8D621K86",
+            "valid": true,
+            "entityName": "DEUTSCHE BANK AKTIENGESELLSCHAFT",
+            "status": "ACTIVE"
+          },
+          {
+            "lei": "INVALID1234567890XX",
+            "valid": false,
+            "entityName": "",
+            "status": "NOT_FOUND"
+          }
+        ]
+      }
+    },
+    {
+      "test": "Rate Limiting Behavior",
+      "success": true,
+      "duration": 288,
+      "details": {
+        "totalRequests": 5,
+        "successfulRequests": 5,
+        "averageTimePerRequest": 57.6
+      }
+    }
+  ],
+  "summary": {
+    "leiValidation": true,
+    "entitySearch": true,
+    "fuzzyMatching": false,
+    "bicMapping": true,
+    "relationshipData": true,
+    "batchProcessing": true,
+    "rateLimiting": true
+  }
+}

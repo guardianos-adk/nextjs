@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-06-12T12:05:12.678Z",
+  "successRate": 100,
+  "results": [
+    {
+      "name": "ANKR Configuration",
+      "success": true,
+      "data": {
+        "blockNumber": 72676183,
+        "chain": "polygon"
+      }
+    },
+    {
+      "name": "Transaction Fetching",
+      "success": true,
+      "data": {
+        "hash": "0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060",
+        "status": "failed"
+      }
+    },
+    {
+      "name": "Sanctions Data Access",
+      "success": true,
+      "data": {
+        "source": "UN Consolidated",
+        "status": 200,
+        "contentLength": "2212921"
+      }
+    },
+    {
+      "name": "Multi-Chain Support",
+      "success": true,
+      "data": {
+        "successfulChains": 3,
+        "totalChains": 3,
+        "chains": [
+          {
+            "chain": "polygon",
+            "blockNumber": 72676190,
+            "success": true
+          },
+          {
+            "chain": "arbitrum",
+            "blockNumber": 346566964,
+            "success": true
+          },
+          {
+            "chain": "optimism",
+            "blockNumber": 137065567,
+            "success": true
+          }
+        ]
+      }
+    }
+  ]
+}
