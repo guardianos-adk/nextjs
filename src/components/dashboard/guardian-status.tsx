@@ -22,7 +22,11 @@ import {
   Wifi,
   WifiOff,
   Settings,
-  RefreshCw
+  RefreshCw,
+  Vote,
+  TrendingUp,
+  Network,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
@@ -43,7 +47,11 @@ import {
   useAlertsQuery,
   enableMockMode,
   disableMockMode,
-  isMockModeActive
+  isMockModeActive,
+  useCurrentGuardianQuery,
+  useDashboardOverviewQuery,
+  useSystemHealthQuery,
+  useBackendHealthQuery
 } from '@/providers/query-provider';
 
 // 🎯 **Main Status Dashboard Component**
@@ -51,7 +59,7 @@ export function GuardianStatusDashboard() {
   const systemHealth = useSystemHealth();
 
   // Store actions
-  const { setDashboardStats, setActiveRequests, setAgents, setSentinelMetrics, addAlert } = useGuardianStore();
+  const { setDashboardStats, setActiveRequests, setAgents, setSentinelMetrics, addAlert, setConnectionStatus, setBackendHealth } = useGuardianStore();
 
   // React Query hooks
   const dashboardQuery = useDashboardStatsQuery();
@@ -91,27 +99,49 @@ export function GuardianStatusDashboard() {
     }
   }, [alertsQuery.data, addAlert]);
 
+  const { data: backendHealth } = useBackendHealthQuery();
+
+  // Update store with backend health
+  useEffect(() => {
+    if (backendHealth) {
+      setBackendHealth(backendHealth);
+      if (backendHealth.main || backendHealth.fraud) {
+        setConnectionStatus('connected');
+      } else {
+        setConnectionStatus('disconnected');
+      }
+    }
+  }, [backendHealth, setBackendHealth, setConnectionStatus]);
+
   return (
     <div className="space-y-6">
-      {/* 🏥 System Health Banner */}
-      <SystemHealthBanner />
-      
-      {/* 📊 Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <ConnectionStatusCard />
-        <GuardianNetworkCard />
-        <VotingStatusCard />
-        <SentinelMetricsCard />
+      {/* Connection Status Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Guardian Dashboard</h1>
+          <p className="text-muted-foreground">Real-time monitoring and control center</p>
+        </div>
+        <ConnectionStatus />
       </div>
 
-      {/* 🤖 Agent Status Grid */}
+      {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AgentStatusCard />
-        <AlertsCard />
+        <GuardianProfile />
+        <DashboardOverview />
+        <VotingRequests />
+        <SystemHealth />
       </div>
 
-      {/* 🎛️ Control Panel */}
-      <ControlPanel />
+      {/* Footer */}
+      <div className="border-t pt-6">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>Last updated: {new Date().toLocaleTimeString()}</span>
+          <span className="flex items-center gap-1">
+            <Zap className="w-4 h-4" />
+            Real-time data from Python backend
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -489,4 +519,454 @@ function ControlPanel() {
       </CardContent>
     </Card>
   );
+}
+
+// Connection status indicator
+function ConnectionStatus() {
+  const { data: backendHealth, isLoading } = useBackendHealthQuery()
+  const connectionStatus = useGuardianStore((state) => state.connectionStatus)
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+        Checking connection...
+      </div>
+    )
+  }
+
+  const isConnected = connectionStatus === 'connected' && (backendHealth?.main || backendHealth?.fraud)
+
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <div className={`w-2 h-2 rounded-full ${
+        isConnected ? 'bg-green-500' : 'bg-red-500'
+      }`} />
+      <span className={isConnected ? 'text-green-600' : 'text-red-600'}>
+        {isConnected ? 'Connected to Backend' : 'Backend Offline'}
+      </span>
+      {backendHealth && (
+        <span className="text-muted-foreground text-xs">
+          (Main: {backendHealth.main ? '✓' : '✗'}, Fraud: {backendHealth.fraud ? '✓' : '✗'})
+        </span>
+      )}
+    </div>
+  )
+}
+
+// Guardian profile card
+function GuardianProfile() {
+  const { data: guardian, isLoading, error } = useCurrentGuardianQuery()
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5" />
+            Guardian Profile
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 bg-muted rounded w-3/4" />
+            <div className="h-3 bg-muted rounded w-1/2" />
+            <div className="h-3 bg-muted rounded w-2/3" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5" />
+            Guardian Profile
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
+            <p>Unable to load guardian profile</p>
+            <p className="text-xs">{error.message}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!guardian) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5" />
+            Guardian Profile
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            <Users className="w-8 h-8 mx-auto mb-2" />
+            <p>No guardian profile found</p>
+            <Button variant="outline" size="sm" className="mt-2">
+              Initialize Profile
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="w-5 h-5" />
+          Guardian Profile
+        </CardTitle>
+        <CardDescription>Current guardian information</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <h3 className="font-semibold">{guardian.name}</h3>
+          <p className="text-sm text-muted-foreground">{guardian.institution}</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">LEI Code</p>
+            <p className="font-mono">{guardian.leiCode}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Status</p>
+            <Badge variant={guardian.isActive ? 'default' : 'secondary'}>
+              {guardian.isActive ? 'Active' : 'Inactive'}
+            </Badge>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground text-sm">Jurisdiction</p>
+          <div className="flex gap-1 mt-1">
+            {guardian.jurisdiction.map((j) => (
+              <Badge key={j} variant="outline" className="text-xs">
+                {j}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground text-sm">Roles</p>
+          <div className="flex gap-1 mt-1">
+            {guardian.roles.map((role) => (
+              <Badge key={role} variant="secondary" className="text-xs">
+                {role}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+        
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Certificate</span>
+          <Badge variant={guardian.certificateStatus === 'valid' ? 'default' : 'destructive'}>
+            {guardian.certificateStatus}
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Dashboard overview card
+function DashboardOverview() {
+  const { data: overview, isLoading, error } = useDashboardOverviewQuery()
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            System Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-4 bg-muted rounded animate-pulse" />
+                <div className="h-8 bg-muted rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error || !overview) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            System Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            <TrendingUp className="w-8 h-8 mx-auto mb-2" />
+            <p>Unable to load system overview</p>
+            {error && <p className="text-xs">{error.message}</p>}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Activity className="w-5 h-5" />
+          System Overview
+        </CardTitle>
+        <CardDescription>Current system statistics</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Total Guardians</p>
+            <p className="text-2xl font-bold">{overview.totalGuardians}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Active Requests</p>
+            <p className="text-2xl font-bold">{overview.activeRequests}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Consensus Rate</p>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold">{overview.consensusRate}%</p>
+              <Progress value={overview.consensusRate} className="h-2" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">System Health</p>
+            <Badge variant={overview.systemHealth === 'healthy' ? 'default' : 'destructive'}>
+              {overview.systemHealth}
+            </Badge>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Active voting requests
+function VotingRequests() {
+  const { data: requests, isLoading, error } = useActiveRequestsQuery()
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Vote className="w-5 h-5" />
+            Active Voting
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Vote className="w-5 h-5" />
+            Active Voting
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            <Vote className="w-8 h-8 mx-auto mb-2" />
+            <p>Unable to load voting requests</p>
+            <p className="text-xs">{error.message}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const activeRequests = requests || []
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Vote className="w-5 h-5" />
+          Active Voting ({activeRequests.length})
+        </CardTitle>
+        <CardDescription>Pending de-anonymization requests</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {activeRequests.length === 0 ? (
+          <div className="text-center text-muted-foreground py-4">
+            <CheckCircle className="w-8 h-8 mx-auto mb-2" />
+            <p>No active voting requests</p>
+            <p className="text-xs">All requests have been processed</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {activeRequests.slice(0, 3).map((request) => (
+              <div key={request.id} className="border rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline">{request.requestType}</Badge>
+                  <Badge variant={request.urgency === 'high' ? 'destructive' : 'secondary'}>
+                    {request.urgency}
+                  </Badge>
+                </div>
+                <p className="text-sm font-medium">{request.description}</p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Votes: {request.currentVotes}/{request.requiredVotes}</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {new Date(request.deadline).toLocaleDateString()}
+                  </span>
+                </div>
+                <Progress 
+                  value={(request.currentVotes / request.requiredVotes) * 100} 
+                  className="h-2" 
+                />
+              </div>
+            ))}
+            {activeRequests.length > 3 && (
+              <Button variant="outline" size="sm" className="w-full">
+                View All {activeRequests.length} Requests
+              </Button>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// System health monitoring
+function SystemHealth() {
+  const { data: health, isLoading, error } = useSystemHealthQuery()
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Network className="w-5 h-5" />
+            System Health
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error || !health) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Network className="w-5 h-5" />
+            System Health
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
+            <p>Unable to load system health</p>
+            {error && <p className="text-xs">{error.message}</p>}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Network className="w-5 h-5" />
+          System Health
+        </CardTitle>
+        <CardDescription>Real-time system monitoring</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Agents</p>
+            <div className="flex items-center gap-2">
+              <div className="text-lg font-semibold">
+                {health.agents.healthy}/{health.agents.total}
+              </div>
+              <Badge variant={health.agents.healthy === health.agents.total ? 'default' : 'destructive'}>
+                {health.agents.healthy === health.agents.total ? 'Healthy' : 'Issues'}
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Consensus</p>
+            <div className="flex items-center gap-2">
+              <div className="text-lg font-semibold">{health.consensus.successRate}%</div>
+              <Badge variant={health.consensus.successRate > 90 ? 'default' : 'secondary'}>
+                {health.consensus.avgTime}s avg
+              </Badge>
+            </div>
+          </div>
+        </div>
+        
+        <Separator />
+        
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">Throughput</p>
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span>Current: {health.throughput?.current || 0}</span>
+              <span>Capacity: {health.throughput?.capacity || 0}</span>
+            </div>
+            <Progress 
+              value={((health.throughput?.current || 0) / (health.throughput?.capacity || 1)) * 100} 
+              className="h-2" 
+            />
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Active Alerts</span>
+          <Badge variant={health.alerts?.active > 0 ? 'destructive' : 'default'}>
+            {health.alerts?.active || 0} alerts
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  )
 } 

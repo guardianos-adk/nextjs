@@ -9,16 +9,24 @@ import {
   PaginatedResponse,
   VoteFormData
 } from '@/lib/types';
-import { mockBackend } from './mock-backend';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// Real Backend Configuration
+const API_CONFIG = {
+  MAIN_API_BASE: 'http://localhost:8000/api/v1',
+  FRAUD_API_BASE: 'http://localhost:8001/api/v1',
+  TIMEOUT: 10000, // 10 seconds
+  RETRY_ATTEMPTS: 3,
+  RETRY_DELAY: 1000, // 1 second
+};
 
 class ApiClient {
-  private baseUrl: string;
+  private mainApiUrl: string;
+  private fraudApiUrl: string;
   private token: string | null = null;
 
-  constructor(baseUrl: string = API_BASE_URL) {
-    this.baseUrl = baseUrl;
+  constructor() {
+    this.mainApiUrl = API_CONFIG.MAIN_API_BASE;
+    this.fraudApiUrl = API_CONFIG.FRAUD_API_BASE;
     
     // Get token from localStorage if available
     if (typeof window !== 'undefined') {
@@ -30,6 +38,9 @@ class ApiClient {
     url: string, 
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
+
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -40,37 +51,55 @@ class ApiClient {
         headers.Authorization = `Bearer ${this.token}`;
       }
 
-      const response = await fetch(`${this.baseUrl}${url}`, {
-        ...options,
-        headers,
-        signal: AbortSignal.timeout(10000), // 10 second timeout
-      });
+      let lastError: Error = new Error('Unknown error');
 
-      if (!response.ok) {
-        // Handle specific HTTP errors
-        if (response.status === 401) {
-          // Clear invalid token
-          this.token = null;
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('guardian_token');
+      // Retry logic for network reliability
+      for (let attempt = 1; attempt <= API_CONFIG.RETRY_ATTEMPTS; attempt++) {
+        try {
+          const response = await fetch(url, {
+            ...options,
+            headers,
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            // Handle specific HTTP errors
+            if (response.status === 401) {
+              this.token = null;
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('guardian_token');
+              }
+              throw new Error('Authentication failed. Please log in again.');
+            }
+            
+            if (response.status >= 500) {
+              throw new Error('Server error. Please try again later.');
+            }
+            
+            throw new Error(`Request failed with status ${response.status}`);
           }
-          throw new Error('Authentication failed. Please log in again.');
+
+          const data = await response.json();
+          return { 
+            success: true, 
+            data,
+            timestamp: new Date().toISOString()
+          };
+        } catch (error: any) {
+          lastError = error;
+          console.warn(`API request attempt ${attempt} failed:`, error);
+          
+          if (attempt < API_CONFIG.RETRY_ATTEMPTS) {
+            await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY * attempt));
+          }
         }
-        
-        if (response.status >= 500) {
-          throw new Error('Server error. Please try again later.');
-        }
-        
-        throw new Error(`Request failed with status ${response.status}`);
       }
 
-      const data = await response.json();
-      return { 
-        success: true, 
-        data,
-        timestamp: new Date().toISOString()
-      };
+      throw lastError;
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('API request failed:', url, error);
       
       // Handle network errors
@@ -83,15 +112,9 @@ class ApiClient {
       }
       
       if (error.message?.includes('fetch') || error.message?.includes('Connection refused')) {
-        // Enable mock backend for network failures
-        if (!mockBackend.isActive()) {
-          console.warn('🔄 Network failure detected, enabling mock backend');
-          mockBackend.enable();
-        }
-        
         return { 
           success: false, 
-          error: 'Network error. Operating in offline mode with demo data.',
+          error: 'Network error. Please ensure the backend servers are running.',
           timestamp: new Date().toISOString()
         };
       }
@@ -104,27 +127,51 @@ class ApiClient {
     }
   }
 
-  private get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  private get<T>(endpoint: string, useFraudApi = false): Promise<ApiResponse<T>> {
+    const baseUrl = useFraudApi ? this.fraudApiUrl : this.mainApiUrl;
+    return this.request<T>(`${baseUrl}${endpoint}`, { method: 'GET' });
   }
 
-  private post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, {
+  private post<T>(endpoint: string, data?: any, useFraudApi = false): Promise<ApiResponse<T>> {
+    const baseUrl = useFraudApi ? this.fraudApiUrl : this.mainApiUrl;
+    return this.request<T>(`${baseUrl}${endpoint}`, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  private patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, {
+  private patch<T>(endpoint: string, data?: any, useFraudApi = false): Promise<ApiResponse<T>> {
+    const baseUrl = useFraudApi ? this.fraudApiUrl : this.mainApiUrl;
+    return this.request<T>(`${baseUrl}${endpoint}`, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
+  // Health Check
+  async checkHealth(): Promise<{ main: boolean; fraud: boolean }> {
+    const results = { main: false, fraud: false };
+    
+    try {
+      await this.request('http://localhost:8000/api/health');
+      results.main = true;
+    } catch (error) {
+      console.warn('Main API health check failed:', error);
+    }
+
+    try {
+      await this.request('http://localhost:8001/health');
+      results.fraud = true;
+    } catch (error) {
+      console.warn('Fraud API health check failed:', error);
+    }
+
+    return results;
+  }
+
   // Authentication
   async login(leiCode: string, certificate: string): Promise<ApiResponse<{ token: string; guardian: Guardian }>> {
-    const response = await this.post<{ token: string; guardian: Guardian }>('/api/v1/auth/login', {
+    const response = await this.post<{ token: string; guardian: Guardian }>('/auth/login', {
       leiCode,
       certificate,
     });
@@ -148,73 +195,71 @@ class ApiClient {
 
   // Guardian Management
   async getCurrentGuardian(): Promise<ApiResponse<Guardian>> {
-    return this.get<Guardian>('/api/v1/guardians/me');
+    return this.get<Guardian>('/guardians/me');
   }
 
   async getAllGuardians(): Promise<ApiResponse<Guardian[]>> {
-    return this.get<Guardian[]>('/api/v1/guardians');
+    return this.get<Guardian[]>('/guardians');
   }
 
   async updateGuardianProfile(updates: Partial<Guardian>): Promise<ApiResponse<Guardian>> {
-    return this.patch<Guardian>('/api/v1/guardians/me', updates);
+    return this.patch<Guardian>('/guardians/me', updates);
   }
 
   // Voting System
   async getActiveRequests(): Promise<ApiResponse<DeAnonymizationRequest[]>> {
-    return this.get<DeAnonymizationRequest[]>('/api/v1/voting/active-requests');
+    return this.get<DeAnonymizationRequest[]>('/voting/active-requests');
   }
 
   async getRequest(requestId: string): Promise<ApiResponse<DeAnonymizationRequest>> {
-    return this.get<DeAnonymizationRequest>(`/api/v1/voting/requests/${requestId}`);
+    return this.get<DeAnonymizationRequest>(`/voting/requests/${requestId}`);
   }
 
   async submitVote(requestId: string, voteData: VoteFormData): Promise<ApiResponse<ConsensusResult>> {
-    return this.post<ConsensusResult>(`/api/v1/voting/requests/${requestId}/vote`, voteData);
+    return this.post<ConsensusResult>(`/voting/requests/${requestId}/vote`, voteData);
   }
 
   async createRequest(requestData: any): Promise<ApiResponse<DeAnonymizationRequest>> {
-    return this.post<DeAnonymizationRequest>('/api/v1/voting/requests', requestData);
+    return this.post<DeAnonymizationRequest>('/voting/requests', requestData);
   }
 
   async getVotingHistory(page = 1, pageSize = 50): Promise<ApiResponse<PaginatedResponse<DeAnonymizationRequest>>> {
-    return this.get<PaginatedResponse<DeAnonymizationRequest>>(`/api/v1/voting/history?page=${page}&pageSize=${pageSize}`);
+    return this.get<PaginatedResponse<DeAnonymizationRequest>>(`/voting/history?page=${page}&pageSize=${pageSize}`);
   }
 
   // ADK Agent Management
   async getAllAgentsStatus(): Promise<ApiResponse<ADKAgent[]>> {
-    return this.get<ADKAgent[]>('/api/v1/adk/agents/status');
+    return this.get<ADKAgent[]>('/adk/agents/status');
   }
 
   async getAgentStatus(agentId: string): Promise<ApiResponse<ADKAgent>> {
-    return this.get<ADKAgent>(`/api/v1/adk/agents/${agentId}/status`);
+    return this.get<ADKAgent>(`/adk/agents/${agentId}/status`);
   }
 
   async restartAgent(agentId: string): Promise<ApiResponse<{ success: boolean }>> {
-    return this.post<{ success: boolean }>(`/api/v1/adk/agents/${agentId}/restart`);
+    return this.post<{ success: boolean }>(`/adk/agents/${agentId}/restart`);
   }
 
   async getActiveWorkflows(): Promise<ApiResponse<any[]>> {
-    return this.get<any[]>('/api/v1/adk/workflows/active');
+    return this.get<any[]>('/adk/workflows/active');
   }
 
   async triggerWorkflow(workflowType: string, inputData: any): Promise<ApiResponse<any>> {
-    return this.post<any>('/api/v1/adk/workflows/trigger', {
-      workflowType,
-      inputData,
-    });
+    return this.post<any>('/adk/workflows/trigger', { workflowType, inputData });
   }
 
+  // Fraud Monitoring (uses fraud API on port 8001)
   async getAgentLogs(agentId: string, limit = 100): Promise<ApiResponse<any[]>> {
-    return this.get<any[]>(`/api/v1/adk/agents/${agentId}/logs?limit=${limit}`);
+    return this.get<any[]>(`/agents/${agentId}/logs?limit=${limit}`, true);
   }
 
-  // FraudSentinel Monitoring
+  // Sentinel Monitoring
   async getSentinelStatus(): Promise<ApiResponse<{ status: string; health: any }>> {
-    return this.get<{ status: string; health: any }>('/api/v1/sentinel/status');
+    return this.get<{ status: string; health: any }>('/sentinel/status');
   }
 
   async getCurrentMetrics(): Promise<ApiResponse<SentinelMetrics>> {
-    return this.get<SentinelMetrics>('/api/v1/sentinel/metrics/current');
+    return this.get<SentinelMetrics>('/metrics/current', true);
   }
 
   async getHistoricalMetrics(
@@ -222,23 +267,23 @@ class ApiClient {
     endDate: string, 
     granularity = 'hour'
   ): Promise<ApiResponse<any[]>> {
-    return this.get<any[]>(`/api/v1/sentinel/metrics/historical?start_date=${startDate}&end_date=${endDate}&granularity=${granularity}`);
+    return this.get<any[]>(`/metrics/historical?start_date=${startDate}&end_date=${endDate}&granularity=${granularity}`, true);
   }
 
   async getPerformanceReport(days = 7): Promise<ApiResponse<any>> {
-    return this.get<any>(`/api/v1/sentinel/performance/report?days=${days}`);
+    return this.get<any>(`/metrics/performance?days=${days}`, true);
   }
 
   async getActiveAlerts(severity?: string): Promise<ApiResponse<Alert[]>> {
-    const query = severity ? `?severity=${severity}` : '';
-    return this.get<Alert[]>(`/api/v1/sentinel/alerts/active${query}`);
+    const endpoint = severity ? `/fraud/alerts?severity=${severity}` : '/fraud/alerts';
+    return this.get<Alert[]>(endpoint, true);
   }
 
   async acknowledgeAlert(alertId: string): Promise<ApiResponse<{ success: boolean }>> {
-    return this.post<{ success: boolean }>(`/api/v1/sentinel/alerts/acknowledge/${alertId}`);
+    return this.post<{ success: boolean }>(`/fraud/alerts/${alertId}/acknowledge`, {}, true);
   }
 
-  // Dashboard Analytics
+  // Dashboard
   async getDashboardOverview(): Promise<ApiResponse<{
     totalGuardians: number;
     activeRequests: number;
@@ -246,7 +291,13 @@ class ApiClient {
     systemHealth: string;
     recentActivity: any[];
   }>> {
-    return this.get('/api/v1/dashboard/overview');
+    return this.get<{
+      totalGuardians: number;
+      activeRequests: number;
+      consensusRate: number;
+      systemHealth: string;
+      recentActivity: any[];
+    }>('/dashboard/overview');
   }
 
   async getSystemHealth(): Promise<ApiResponse<{
@@ -255,57 +306,88 @@ class ApiClient {
     throughput: { current: number; capacity: number };
     alerts: { active: number; critical: number };
   }>> {
-    return this.get('/api/v1/dashboard/health');
+    return this.get<{
+      agents: { healthy: number; total: number };
+      consensus: { successRate: number; avgTime: number };
+      throughput: { current: number; capacity: number };
+      alerts: { active: number; critical: number };
+    }>('/dashboard/health');
   }
 
   async getRecentActivity(): Promise<ApiResponse<any[]>> {
-    return this.get<any[]>('/api/v1/dashboard/activity');
+    return this.get<any[]>('/dashboard/activity');
   }
 }
 
-// Create singleton instance
+// Singleton instance
 export const apiClient = new ApiClient();
 
-// Helper functions for specific use cases
-export const guardianApi = {
-  login: (leiCode: string, certificate: string) => apiClient.login(leiCode, certificate),
-  logout: () => apiClient.logout(),
-  getCurrentGuardian: () => apiClient.getCurrentGuardian(),
-  getAllGuardians: () => apiClient.getAllGuardians(),
-  updateProfile: (updates: Partial<Guardian>) => apiClient.updateGuardianProfile(updates),
-};
+// WebSocket connection for real-time updates
+export class GuardianWebSocket {
+  private ws: WebSocket | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+  private reconnectDelay = 1000;
 
-export const votingApi = {
-  getActiveRequests: () => apiClient.getActiveRequests(),
-  getRequest: (id: string) => apiClient.getRequest(id),
-  submitVote: (requestId: string, voteData: VoteFormData) => apiClient.submitVote(requestId, voteData),
-  createRequest: (data: any) => apiClient.createRequest(data),
-  getHistory: (page?: number, pageSize?: number) => apiClient.getVotingHistory(page, pageSize),
-};
+  constructor(private onMessage: (data: any) => void) {}
 
-export const agentApi = {
-  getAllStatus: () => apiClient.getAllAgentsStatus(),
-  getAgentStatus: (id: string) => apiClient.getAgentStatus(id),
-  restartAgent: (id: string) => apiClient.restartAgent(id),
-  getActiveWorkflows: () => apiClient.getActiveWorkflows(),
-  triggerWorkflow: (type: string, data: any) => apiClient.triggerWorkflow(type, data),
-  getAgentLogs: (id: string, limit?: number) => apiClient.getAgentLogs(id, limit),
-};
+  connect() {
+    try {
+      this.ws = new WebSocket('ws://localhost:8001/ws/monitoring');
+      
+      this.ws.onopen = () => {
+        console.log('🔗 WebSocket connected to fraud monitoring');
+        this.reconnectAttempts = 0;
+      };
 
-export const sentinelApi = {
-  getStatus: () => apiClient.getSentinelStatus(),
-  getCurrentMetrics: () => apiClient.getCurrentMetrics(),
-  getHistoricalMetrics: (start: string, end: string, granularity?: string) => 
-    apiClient.getHistoricalMetrics(start, end, granularity),
-  getPerformanceReport: (days?: number) => apiClient.getPerformanceReport(days),
-  getActiveAlerts: (severity?: string) => apiClient.getActiveAlerts(severity),
-  acknowledgeAlert: (id: string) => apiClient.acknowledgeAlert(id),
-};
+      this.ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          this.onMessage(data);
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
+        }
+      };
 
-export const dashboardApi = {
-  getOverview: () => apiClient.getDashboardOverview(),
-  getSystemHealth: () => apiClient.getSystemHealth(),
-  getRecentActivity: () => apiClient.getRecentActivity(),
-};
+      this.ws.onclose = () => {
+        console.log('🔌 WebSocket disconnected');
+        this.handleReconnect();
+      };
+
+      this.ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    } catch (error) {
+      console.error('Failed to connect WebSocket:', error);
+      this.handleReconnect();
+    }
+  }
+
+  private handleReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      console.log(`Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      setTimeout(() => this.connect(), this.reconnectDelay * this.reconnectAttempts);
+    }
+  }
+
+  disconnect() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+  }
+
+  send(data: any) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(data));
+    }
+  }
+}
+
+// Export singleton instance
+export const guardianWebSocket = new GuardianWebSocket((data) => {
+  console.log('📡 Real-time update received:', data);
+});
 
 export default apiClient;
