@@ -66,8 +66,8 @@ function QuickActionButton({
         onClick={onClick}
         disabled={disabled}
         className={cn(
-          "h-auto p-4 flex flex-col items-start gap-3 bg-gradient-to-br border transition-all duration-300",
-          "hover:shadow-lg hover:shadow-primary/5 relative overflow-hidden",
+          "h-24 p-4 flex flex-col items-start gap-3 bg-gradient-to-br border transition-all duration-300",
+          "hover:shadow-lg hover:shadow-primary/5 relative overflow-hidden w-full",
           disabled ? "opacity-50 cursor-not-allowed" : colorClasses[color],
           urgent && "animate-pulse ring-2 ring-red-500/20"
         )}

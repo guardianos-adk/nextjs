@@ -6,7 +6,6 @@ import { useSentinel } from "@/hooks/use-guardian";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DarkpoolChart } from "@/components/ui/darkpool-visualiser";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Shield, 
@@ -145,48 +144,108 @@ function MetricTile({ title, value, change, trend, icon, color }: MetricTileProp
   );
 }
 
-function TransactionClusterView() {
-  // Mock transaction cluster data for demonstration
-  const clusterData = {
-    name: "Root",
-    children: [
-      {
-        name: "Legitimate Transactions",
-        size: 850,
-        suspicious: false
-      },
-      {
-        name: "High-Risk Clusters",
-        children: [
-          { name: "Mixing Service", size: 45, suspicious: true },
-          { name: "Rapid Transfers", size: 32, suspicious: true },
-          { name: "Cross-Border", size: 28, suspicious: true }
-        ]
-      },
-      {
-        name: "Medium-Risk Clusters", 
-        children: [
-          { name: "New Addresses", size: 67, suspicious: false },
-          { name: "Large Amounts", size: 23, suspicious: false }
-        ]
-      },
-      {
-        name: "Flagged Transactions",
-        children: [
-          { name: "Sanctions List", size: 8, suspicious: true },
-          { name: "PEP Related", size: 5, suspicious: true }
-        ]
-      }
-    ]
+function TransactionFlowMonitor() {
+  const currentTime = useCurrentTime();
+  
+  // Mock real-time transaction flow data
+  const [flowData, setFlowData] = useState({
+    totalTransactions: 1247,
+    flaggedTransactions: 23,
+    processingRate: 156,
+    riskScore: 2.3
+  });
+
+  useEffect(() => {
+    if (!currentTime) return;
+    
+    const interval = setInterval(() => {
+      setFlowData(prev => ({
+        totalTransactions: prev.totalTransactions + Math.floor(Math.random() * 5),
+        flaggedTransactions: prev.flaggedTransactions + (Math.random() > 0.9 ? 1 : 0),
+        processingRate: 150 + Math.floor(Math.random() * 20),
+        riskScore: 1.5 + Math.random() * 2
+      }));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentTime]);
+
+  const getRiskColor = (score: number) => {
+    if (score > 3) return "text-red-500 bg-red-500/10";
+    if (score > 2) return "text-orange-500 bg-orange-500/10";
+    return "text-green-500 bg-green-500/10";
   };
 
   return (
-    <div className="h-64 w-full bg-muted/20 rounded-lg border border-border/50 p-4">
-      <div className="h-full w-full flex items-center justify-center">
-        <DarkpoolChart 
-          width={400} 
-          height={224}
-        />
+    <div className="h-64 w-full bg-gradient-to-br from-muted/20 to-muted/40 rounded-lg border border-border/50 p-4">
+      <div className="h-full flex flex-col">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <Activity className="h-4 w-4 text-primary" />
+            Transaction Flow Monitor
+          </h4>
+          <Badge variant="outline" className="text-xs">
+            Live
+          </Badge>
+        </div>
+        
+        <div className="flex-1 grid grid-cols-2 gap-4">
+          {/* Transaction Volume */}
+          <div className="bg-background/50 rounded-lg p-3 border border-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">Total Processed</span>
+              <Target className="h-3 w-3 text-blue-500" />
+            </div>
+            <div className="text-lg font-bold text-blue-600">
+              {flowData.totalTransactions.toLocaleString()}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              +{flowData.processingRate}/min
+            </div>
+          </div>
+
+          {/* Flagged Transactions */}
+          <div className="bg-background/50 rounded-lg p-3 border border-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">Flagged</span>
+              <AlertTriangle className="h-3 w-3 text-orange-500" />
+            </div>
+            <div className="text-lg font-bold text-orange-600">
+              {flowData.flaggedTransactions}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {((flowData.flaggedTransactions / flowData.totalTransactions) * 100).toFixed(2)}% rate
+            </div>
+          </div>
+
+          {/* Risk Score */}
+          <div className="bg-background/50 rounded-lg p-3 border border-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">Risk Score</span>
+              <Shield className="h-3 w-3 text-green-500" />
+            </div>
+            <div className={`text-lg font-bold rounded-md px-2 py-1 ${getRiskColor(flowData.riskScore)}`}>
+              {flowData.riskScore.toFixed(1)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              /5.0 scale
+            </div>
+          </div>
+
+          {/* Processing Status */}
+          <div className="bg-background/50 rounded-lg p-3 border border-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">Status</span>
+              <CheckCircle className="h-3 w-3 text-green-500" />
+            </div>
+            <div className="text-lg font-bold text-green-600">
+              Operational
+            </div>
+            <div className="text-xs text-muted-foreground">
+              All systems active
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -324,40 +383,32 @@ export function FraudSentinelMonitor() {
             />
           </div>
 
-          {/* Transaction Cluster Visualization & Alerts */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Transaction Pattern Analysis</h4>
-              <TransactionClusterView />
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Clustering Algorithm: Behavioral Analysis</span>
-                <span>Updated 30s ago</span>
-              </div>
+          {/* Transaction Flow Monitor */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-muted-foreground">Real-time Transaction Analysis</h4>
+            <TransactionFlowMonitor />
+          </div>
+
+          {/* Recent Alerts */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium text-muted-foreground">Recent Alerts</h4>
+              <Button variant="outline" size="sm" className="text-xs">
+                <Eye className="h-3 w-3 mr-1" />
+                View All
+              </Button>
             </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-muted-foreground">Recent Alerts</h4>
-                <Button size="sm" variant="ghost" className="text-xs">
-                  View All
-                </Button>
-              </div>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {activeAlerts.length > 0 ? (
-                  activeAlerts.slice(0, 3).map((alert) => (
-                    <FraudAlert
-                      key={alert.id}
-                      alert={alert}
-                      onAcknowledge={handleAcknowledgeAlert}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No active alerts</p>
-                  </div>
-                )}
-              </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {alerts.slice(0, 3).map((alert, index) => (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <FraudAlert alert={alert} onAcknowledge={handleAcknowledgeAlert} />
+                </motion.div>
+              ))}
             </div>
           </div>
 

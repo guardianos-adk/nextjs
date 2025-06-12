@@ -319,7 +319,7 @@ export function useVotingWebSocket() {
     autoConnect: true,
     maxRetries: 3,
     retryDelay: 5000,
-    fallbackMode: true, // Enable fallback mode for now
+    fallbackMode: false, // Disable fallback mode to enable connections
   });
 }
 
@@ -328,7 +328,7 @@ export function useSentinelWebSocket() {
     autoConnect: true,
     maxRetries: 3,
     retryDelay: 5000,
-    fallbackMode: true, // Enable fallback mode for now
+    fallbackMode: false, // Disable fallback mode to enable connections
   });
 }
 
@@ -337,7 +337,7 @@ export function useAgentWebSocket() {
     autoConnect: true,
     maxRetries: 3,
     retryDelay: 5000,
-    fallbackMode: true, // Enable fallback mode for now
+    fallbackMode: false, // Disable fallback mode to enable connections
   });
 }
 
