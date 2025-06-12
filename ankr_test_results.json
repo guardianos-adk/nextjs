@@ -1,0 +1,102 @@
+{
+  "timestamp": "2025-06-12T11:38:19.323Z",
+  "summary": {
+    "total": 10,
+    "successful": 8,
+    "failed": 2,
+    "totalDuration": 1282,
+    "successRate": 80
+  },
+  "results": [
+    {
+      "name": "Configuration",
+      "success": true,
+      "duration": 262,
+      "data": {
+        "blockNumber": 22688237,
+        "apiKeyConfigured": true
+      }
+    },
+    {
+      "name": "Transaction Fetching (ethereum)",
+      "success": true,
+      "duration": 365,
+      "data": {
+        "hash": "0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060",
+        "from": "0xa1e4380a3b1f749673e270229993ee55f35663b4",
+        "to": "0x5df9b87991262f6ba471f09758cde1c0fc1de734",
+        "value": "0x7a69",
+        "riskIndicators": 0
+      }
+    },
+    {
+      "name": "Multi-Chain (ethereum)",
+      "success": false,
+      "duration": 253,
+      "error": "Chain ethereum: undefined"
+    },
+    {
+      "name": "Multi-Chain (polygon)",
+      "success": true,
+      "duration": 86,
+      "data": {
+        "chain": "polygon",
+        "blockNumber": 72675433
+      }
+    },
+    {
+      "name": "Multi-Chain (arbitrum)",
+      "success": true,
+      "duration": 78,
+      "data": {
+        "chain": "arbitrum",
+        "blockNumber": 346560512
+      }
+    },
+    {
+      "name": "Multi-Chain (optimism)",
+      "success": true,
+      "duration": 25,
+      "data": {
+        "chain": "optimism",
+        "blockNumber": 137064760
+      }
+    },
+    {
+      "name": "Multi-Chain (bsc)",
+      "success": true,
+      "duration": 24,
+      "data": {
+        "chain": "bsc",
+        "blockNumber": 51322802
+      }
+    },
+    {
+      "name": "Address Transactions",
+      "success": false,
+      "duration": 23,
+      "error": "Unable to connect. Is the computer able to access the url?"
+    },
+    {
+      "name": "Risk Analysis",
+      "success": true,
+      "duration": 7,
+      "data": {
+        "clusterSize": 1,
+        "connections": 0,
+        "riskScore": 0.003
+      }
+    },
+    {
+      "name": "Performance",
+      "success": true,
+      "duration": 159,
+      "data": {
+        "batchSize": 2,
+        "successCount": 1,
+        "avgTimePerTx": 79.5,
+        "totalBatchTime": 159
+      }
+    }
+  ]
+}
