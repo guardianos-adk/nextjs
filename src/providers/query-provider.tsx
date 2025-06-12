@@ -61,7 +61,7 @@ function useConnectionMonitoring() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [setConnectionStatus]);
+  }, []);
 }
 
 // Connection monitoring component
@@ -98,13 +98,22 @@ export function useCurrentGuardianQuery() {
   return useQuery({
     queryKey: ['guardian', 'current'],
     queryFn: async () => {
-      const response = await apiClient.getCurrentGuardian();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch guardian');
+      try {
+        const response = await apiClient.getCurrentGuardian();
+        if (!response.success) {
+          // Return null instead of throwing error when backend is unavailable
+          console.warn('Guardian query failed:', response.error);
+          return null;
+        }
+        // Ensure we never return undefined
+        return response.data ?? null;
+      } catch (error) {
+        console.warn('Guardian query error:', error);
+        return null;
       }
-      return response.data;
     },
     staleTime: 5 * 60 * 1000, // Guardian info doesn't change often
+    retry: false, // Don't retry when backend is down
   });
 }
 
@@ -113,13 +122,21 @@ export function useDashboardOverviewQuery() {
   return useQuery({
     queryKey: ['dashboard', 'overview'],
     queryFn: async () => {
-      const response = await apiClient.getDashboardOverview();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch dashboard overview');
+      try {
+        const response = await apiClient.getDashboardOverview();
+        if (!response.success) {
+          console.warn('Dashboard overview query failed:', response.error);
+          return null;
+        }
+        // Ensure we never return undefined
+        return response.data ?? null;
+      } catch (error) {
+        console.warn('Dashboard overview query error:', error);
+        return null;
       }
-      return response.data;
     },
     refetchInterval: 30000, // Refetch every 30 seconds
+    retry: false,
   });
 }
 
@@ -128,13 +145,21 @@ export function useSystemHealthQuery() {
   return useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: async () => {
-      const response = await apiClient.getSystemHealth();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch system health');
+      try {
+        const response = await apiClient.getSystemHealth();
+        if (!response.success) {
+          console.warn('System health query failed:', response.error);
+          return null;
+        }
+        // Ensure we never return undefined
+        return response.data ?? null;
+      } catch (error) {
+        console.warn('System health query error:', error);
+        return null;
       }
-      return response.data;
     },
     refetchInterval: 15000, // Refetch every 15 seconds
+    retry: false,
   });
 }
 
@@ -143,13 +168,21 @@ export function useActiveRequestsQuery() {
   return useQuery({
     queryKey: ['voting', 'active-requests'],
     queryFn: async () => {
-      const response = await apiClient.getActiveRequests();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch active requests');
+      try {
+        const response = await apiClient.getActiveRequests();
+        if (!response.success) {
+          console.warn('Active requests query failed:', response.error);
+          return [];
+        }
+        // Ensure we never return undefined
+        return response.data ?? [];
+      } catch (error) {
+        console.warn('Active requests query error:', error);
+        return [];
       }
-      return response.data;
     },
     refetchInterval: 15000, // Refetch every 15 seconds
+    retry: false,
   });
 }
 
@@ -158,13 +191,21 @@ export function useAgentsStatusQuery() {
   return useQuery({
     queryKey: ['agents', 'status'],
     queryFn: async () => {
-      const response = await apiClient.getAllAgentsStatus();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch agents status');
+      try {
+        const response = await apiClient.getAllAgentsStatus();
+        if (!response.success) {
+          console.warn('Agents status query failed:', response.error);
+          return [];
+        }
+        // Ensure we never return undefined
+        return response.data ?? [];
+      } catch (error) {
+        console.warn('Agents status query error:', error);
+        return [];
       }
-      return response.data;
     },
     refetchInterval: 10000, // Refetch every 10 seconds
+    retry: false,
   });
 }
 
@@ -173,13 +214,21 @@ export function useSentinelMetricsQuery() {
   return useQuery({
     queryKey: ['sentinel', 'metrics'],
     queryFn: async () => {
-      const response = await apiClient.getCurrentMetrics();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch sentinel metrics');
+      try {
+        const response = await apiClient.getCurrentMetrics();
+        if (!response.success) {
+          console.warn('Sentinel metrics query failed:', response.error);
+          return null;
+        }
+        // Ensure we never return undefined
+        return response.data ?? null;
+      } catch (error) {
+        console.warn('Sentinel metrics query error:', error);
+        return null;
       }
-      return response.data;
     },
     refetchInterval: 5000, // Refetch every 5 seconds for real-time metrics
+    retry: false,
   });
 }
 
@@ -188,13 +237,21 @@ export function useActiveAlertsQuery(severity?: string) {
   return useQuery({
     queryKey: ['alerts', 'active', severity],
     queryFn: async () => {
-      const response = await apiClient.getActiveAlerts(severity);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch active alerts');
+      try {
+        const response = await apiClient.getActiveAlerts(severity);
+        if (!response.success) {
+          console.warn('Active alerts query failed:', response.error);
+          return [];
+        }
+        // Ensure we never return undefined
+        return response.data ?? [];
+      } catch (error) {
+        console.warn('Active alerts query error:', error);
+        return [];
       }
-      return response.data;
     },
     refetchInterval: 10000, // Refetch every 10 seconds
+    retry: false,
   });
 }
 
@@ -203,13 +260,21 @@ export function useAllGuardiansQuery() {
   return useQuery({
     queryKey: ['guardians', 'all'],
     queryFn: async () => {
-      const response = await apiClient.getAllGuardians();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch guardians');
+      try {
+        const response = await apiClient.getAllGuardians();
+        if (!response.success) {
+          console.warn('All guardians query failed:', response.error);
+          return [];
+        }
+        // Ensure we never return undefined
+        return response.data ?? [];
+      } catch (error) {
+        console.warn('All guardians query error:', error);
+        return [];
       }
-      return response.data;
     },
     staleTime: 2 * 60 * 1000, // Guardians list doesn't change often
+    retry: false,
   });
 }
 
@@ -218,13 +283,21 @@ export function useActiveWorkflowsQuery() {
   return useQuery({
     queryKey: ['workflows', 'active'],
     queryFn: async () => {
-      const response = await apiClient.getActiveWorkflows();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch active workflows');
+      try {
+        const response = await apiClient.getActiveWorkflows();
+        if (!response.success) {
+          console.warn('Active workflows query failed:', response.error);
+          return [];
+        }
+        // Ensure we never return undefined
+        return response.data ?? [];
+      } catch (error) {
+        console.warn('Active workflows query error:', error);
+        return [];
       }
-      return response.data;
     },
     refetchInterval: 20000, // Refetch every 20 seconds
+    retry: false,
   });
 }
 
@@ -233,13 +306,21 @@ export function useVotingHistoryQuery(page = 1, pageSize = 20) {
   return useQuery({
     queryKey: ['voting', 'history', page, pageSize],
     queryFn: async () => {
-      const response = await apiClient.getVotingHistory(page, pageSize);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch voting history');
+      try {
+        const response = await apiClient.getVotingHistory(page, pageSize);
+        if (!response.success) {
+          console.warn('Voting history query failed:', response.error);
+          return { data: [], total: 0, page, pageSize };
+        }
+        // Ensure we never return undefined
+        return response.data ?? { data: [], total: 0, page, pageSize };
+      } catch (error) {
+        console.warn('Voting history query error:', error);
+        return { data: [], total: 0, page, pageSize };
       }
-      return response.data;
     },
-    staleTime: 60 * 1000, // History is relatively stable
+    staleTime: 60 * 1000, // History doesn't change often
+    retry: false,
   });
 }
 
@@ -248,9 +329,16 @@ export function useBackendHealthQuery() {
   return useQuery({
     queryKey: ['backend', 'health'],
     queryFn: async () => {
-      return await apiClient.checkHealth();
+      try {
+        const response = await apiClient.checkHealth();
+        // checkHealth returns a plain object, not an ApiResponse
+        return response ?? { main: false, fraud: false };
+      } catch (error) {
+        console.warn('Backend health query error:', error);
+        return { main: false, fraud: false };
+      }
     },
     refetchInterval: 30000, // Check health every 30 seconds
-    retry: 1, // Don't retry health checks aggressively
+    retry: false,
   });
 } 

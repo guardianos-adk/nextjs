@@ -30,74 +30,83 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
-  useGuardianStore, 
-  useConnectionStatus, 
-  useDashboardState,
-  useVotingState,
-  useAgentsState,
-  useSentinelState,
-  useSystemHealth,
-  useIsOnline
+  useGuardianStore,
+  useConnectionStatus,
+  useBackendHealth,
+  useCurrentGuardian,
+  useDashboardOverview,
+  useActiveRequests,
+  useAgents,
+  useSentinelMetrics,
+  useActiveAlerts,
+  // Use stable action selectors
+  useAddAlert,
+  useSetDashboardStats,
+  useSetActiveRequests,
+  useSetAgents,
+  useSetSentinelMetrics,
+  useSetBackendHealth,
+  useSetConnectionStatus
 } from '@/stores/guardian-store';
 import {
-  useDashboardStatsQuery,
-  useActiveRequestsQuery,
-  useAgentsStatusQuery,
-  useSentinelMetricsQuery,
-  useAlertsQuery,
-  enableMockMode,
-  disableMockMode,
-  isMockModeActive,
   useCurrentGuardianQuery,
   useDashboardOverviewQuery,
   useSystemHealthQuery,
+  useActiveRequestsQuery,
+  useAgentsStatusQuery,
+  useSentinelMetricsQuery,
+  useActiveAlertsQuery,
   useBackendHealthQuery
 } from '@/providers/query-provider';
 
 // 🎯 **Main Status Dashboard Component**
 export function GuardianStatusDashboard() {
-  const systemHealth = useSystemHealth();
+  // Use stable selectors to prevent infinite re-renders
+  const setDashboardOverview = useSetDashboardStats();
+  const setActiveRequests = useSetActiveRequests();
+  const setAgents = useSetAgents();
+  const setSentinelMetrics = useSetSentinelMetrics();
+  const addAlert = useAddAlert();
+  const setBackendHealth = useSetBackendHealth();
+  const setConnectionStatus = useSetConnectionStatus();
 
-  // Store actions
-  const { setDashboardStats, setActiveRequests, setAgents, setSentinelMetrics, addAlert, setConnectionStatus, setBackendHealth } = useGuardianStore();
-
-  // React Query hooks
-  const dashboardQuery = useDashboardStatsQuery();
+  // Query hooks
+  const dashboardQuery = useDashboardOverviewQuery();
   const requestsQuery = useActiveRequestsQuery();
   const agentsQuery = useAgentsStatusQuery();
   const metricsQuery = useSentinelMetricsQuery();
-  const alertsQuery = useAlertsQuery();
+  const alertsQuery = useActiveAlertsQuery();
 
-  // Sync query data to store
+  // Sync query data to store with stable dependencies
   useEffect(() => {
     if (dashboardQuery.data) {
-      setDashboardStats(dashboardQuery.data);
+      setDashboardOverview(dashboardQuery.data);
     }
-  }, [dashboardQuery.data, setDashboardStats]);
+  }, [dashboardQuery.data]);
 
   useEffect(() => {
     if (requestsQuery.data) {
       setActiveRequests(requestsQuery.data);
     }
-  }, [requestsQuery.data, setActiveRequests]);
+  }, [requestsQuery.data]);
 
   useEffect(() => {
     if (agentsQuery.data) {
       setAgents(agentsQuery.data);
     }
-  }, [agentsQuery.data, setAgents]);
+  }, [agentsQuery.data]);
 
   useEffect(() => {
     if (metricsQuery.data) {
       setSentinelMetrics(metricsQuery.data);
     }
-  }, [metricsQuery.data, setSentinelMetrics]);
+  }, [metricsQuery.data]);
 
   useEffect(() => {
-    if (alertsQuery.data) {
-      alertsQuery.data.forEach(alert => addAlert(alert));
+    if (alertsQuery.data && Array.isArray(alertsQuery.data)) {
+      alertsQuery.data.forEach((alert: any) => addAlert(alert));
     }
-  }, [alertsQuery.data, addAlert]);
+  }, [alertsQuery.data]);
 
   const { data: backendHealth } = useBackendHealthQuery();
 
@@ -111,7 +120,7 @@ export function GuardianStatusDashboard() {
         setConnectionStatus('disconnected');
       }
     }
-  }, [backendHealth, setBackendHealth, setConnectionStatus]);
+  }, [backendHealth]);
 
   return (
     <div className="space-y-6">

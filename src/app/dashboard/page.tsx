@@ -14,19 +14,24 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { WifiOff, AlertTriangle, CheckCircle } from "lucide-react";
+import { WifiOff, AlertTriangle, CheckCircle, Minus } from "lucide-react";
 
 export default function DashboardPage() {
   const { 
     isConnected, 
+    connectionStatus,
     voting, 
     sentinel, 
     agents 
   } = useDashboardWebSocket();
 
-  // Check if any connection has issues
+  // Check if any connection has issues (excluding disabled state)
   const hasConnectionIssues = [voting.connectionStatus, sentinel.connectionStatus, agents.connectionStatus]
-    .some(status => status === 'failed' || status === 'error' || status === 'disconnected');
+    .some(status => status === 'failed' || status === 'error');
+
+  // Check if all connections are disabled (fallback mode)
+  const isInFallbackMode = [voting.connectionStatus, sentinel.connectionStatus, agents.connectionStatus]
+    .every(status => status === 'disabled');
 
   const getConnectionStatusIcon = (status: string) => {
     switch (status) {
@@ -34,12 +39,42 @@ export default function DashboardPage() {
         return <CheckCircle className="h-3 w-3 text-green-500" />;
       case 'connecting':
         return <div className="h-3 w-3 bg-blue-500 rounded-full animate-pulse" />;
+      case 'disabled':
+        return <Minus className="h-3 w-3 text-gray-400" />;
       case 'error':
       case 'failed':
         return <AlertTriangle className="h-3 w-3 text-red-500" />;
       default:
         return <WifiOff className="h-3 w-3 text-gray-500" />;
     }
+  };
+
+  const getConnectionStatusText = (status: string) => {
+    switch (status) {
+      case 'connected':
+        return 'Online';
+      case 'connecting':
+        return 'Connecting';
+      case 'disabled':
+        return 'Offline Mode';
+      case 'error':
+      case 'failed':
+        return 'Error';
+      default:
+        return 'Disconnected';
+    }
+  };
+
+  const getOverallBadgeVariant = () => {
+    if (isConnected) return "default";
+    if (isInFallbackMode) return "secondary";
+    return "destructive";
+  };
+
+  const getOverallStatusText = () => {
+    if (isConnected) return "Online";
+    if (isInFallbackMode) return "Offline Mode";
+    return "Connection Issues";
   };
 
   return (
@@ -83,8 +118,8 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            <Badge variant={isConnected ? "default" : "destructive"} className="text-xs">
-              {isConnected ? "Online" : "Offline"}
+            <Badge variant={getOverallBadgeVariant()} className="text-xs">
+              {getOverallStatusText()}
             </Badge>
           </div>
         </header>
@@ -100,9 +135,18 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Global Connection Alert */}
-          {hasConnectionIssues && (
+          {/* Connection Status Alerts */}
+          {isInFallbackMode && (
             <Alert variant="default">
+              <Minus className="h-4 w-4" />
+              <AlertDescription>
+                Running in offline mode. Backend services are not available. Displaying cached data where possible.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {hasConnectionIssues && !isInFallbackMode && (
+            <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 Some services are experiencing connection issues. Real-time features may be limited.
@@ -137,8 +181,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Offline Mode Notice */}
-          {!isConnected && (
+          {/* Status Notice */}
+          {(!isConnected && !isInFallbackMode) && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -147,9 +191,9 @@ export default function DashboardPage() {
               <Alert variant="destructive">
                 <WifiOff className="h-4 w-4" />
                 <AlertDescription>
-                  <div className="font-medium">Limited Connectivity</div>
+                  <div className="font-medium">Connection Issues</div>
                   <div className="text-xs mt-1">
-                    Displaying available data. Some features may be limited.
+                    Some services are unavailable. Retrying connection...
                   </div>
                 </AlertDescription>
               </Alert>

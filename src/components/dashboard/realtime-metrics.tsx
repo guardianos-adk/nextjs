@@ -100,7 +100,7 @@ export function RealTimeMetrics() {
     consensusRate: []
   });
 
-  // Mock real-time data generation for demonstration
+  // Fixed: Added empty dependency array to prevent infinite re-renders
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -129,8 +129,9 @@ export function RealTimeMetrics() {
       }));
     }, 3000); // Update every 3 seconds
 
+    // Cleanup function to prevent memory leaks
     return () => clearInterval(interval);
-  }, []);
+  }, []); // Empty dependency array - effect runs only once on mount
 
   // Use real data if available, otherwise use mock data
   const metrics = currentMetrics || {

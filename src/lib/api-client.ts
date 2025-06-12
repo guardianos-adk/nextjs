@@ -14,7 +14,7 @@ import {
 const API_CONFIG = {
   MAIN_API_BASE: 'http://localhost:8000/api/v1',
   FRAUD_API_BASE: 'http://localhost:8001/api/v1',
-  TIMEOUT: 10000, // 10 seconds
+  TIMEOUT: 30000, // Increased to 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
 };
@@ -23,6 +23,7 @@ class ApiClient {
   private mainApiUrl: string;
   private fraudApiUrl: string;
   private token: string | null = null;
+  private activeRequests = new Map<string, AbortController>();
 
   constructor() {
     this.mainApiUrl = API_CONFIG.MAIN_API_BASE;
@@ -38,8 +39,18 @@ class ApiClient {
     url: string, 
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
+    // Create a unique request ID to track and potentially cancel requests
+    const requestId = `${Date.now()}-${Math.random()}`;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
+    
+    // Store the controller to allow cancellation
+    this.activeRequests.set(requestId, controller);
+    
+    // Set up timeout
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      this.activeRequests.delete(requestId);
+    }, API_CONFIG.TIMEOUT);
 
     try {
       const headers: Record<string, string> = {
@@ -56,6 +67,8 @@ class ApiClient {
       // Retry logic for network reliability
       for (let attempt = 1; attempt <= API_CONFIG.RETRY_ATTEMPTS; attempt++) {
         try {
+          console.log(`API request attempt ${attempt} to:`, url);
+          
           const response = await fetch(url, {
             ...options,
             headers,
@@ -63,6 +76,7 @@ class ApiClient {
           });
 
           clearTimeout(timeoutId);
+          this.activeRequests.delete(requestId);
 
           if (!response.ok) {
             // Handle specific HTTP errors
@@ -72,6 +86,16 @@ class ApiClient {
                 localStorage.removeItem('guardian_token');
               }
               throw new Error('Authentication failed. Please log in again.');
+            }
+            
+            if (response.status === 404) {
+              // For 404s, return a more graceful response
+              return { 
+                success: false, 
+                error: `Endpoint not found: ${url}`,
+                data: undefined, // Use undefined to match ApiResponse<T> type
+                timestamp: new Date().toISOString()
+              };
             }
             
             if (response.status >= 500) {
@@ -89,7 +113,12 @@ class ApiClient {
           };
         } catch (error: any) {
           lastError = error;
-          console.warn(`API request attempt ${attempt} failed:`, error);
+          console.warn(`API request attempt ${attempt} failed:`, error.message);
+          
+          // Don't retry on abort errors (user cancelled)
+          if (error.name === 'AbortError') {
+            break;
+          }
           
           if (attempt < API_CONFIG.RETRY_ATTEMPTS) {
             await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY * attempt));
@@ -100,31 +129,45 @@ class ApiClient {
       throw lastError;
     } catch (error: any) {
       clearTimeout(timeoutId);
+      this.activeRequests.delete(requestId);
+      
+      // Handle network errors gracefully
+      if (error.name === 'AbortError') {
+        console.log('API request was aborted:', url);
+        return { 
+          success: false, 
+          error: 'Request was cancelled',
+          data: undefined, // Use undefined to match ApiResponse<T> type
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      if (error.message?.includes('fetch') || error.message?.includes('Connection refused') || error.message?.includes('ECONNREFUSED')) {
+        console.warn('Network connection error:', url);
+        return { 
+          success: false, 
+          error: 'Network error. Backend server may be unavailable.',
+          data: undefined, // Use undefined to match ApiResponse<T> type
+          timestamp: new Date().toISOString()
+        };
+      }
+      
       console.error('API request failed:', url, error);
-      
-      // Handle network errors
-      if (error.name === 'AbortError' || error.name === 'TimeoutError') {
-        return { 
-          success: false, 
-          error: 'Request timeout. Please check your connection and try again.',
-          timestamp: new Date().toISOString()
-        };
-      }
-      
-      if (error.message?.includes('fetch') || error.message?.includes('Connection refused')) {
-        return { 
-          success: false, 
-          error: 'Network error. Please ensure the backend servers are running.',
-          timestamp: new Date().toISOString()
-        };
-      }
-      
       return { 
         success: false, 
         error: error.message || 'An unexpected error occurred',
+        data: undefined, // Use undefined to match ApiResponse<T> type
         timestamp: new Date().toISOString()
       };
     }
+  }
+
+  // Cancel all active requests (useful for cleanup)
+  public cancelAllRequests(): void {
+    this.activeRequests.forEach((controller, requestId) => {
+      controller.abort();
+    });
+    this.activeRequests.clear();
   }
 
   private get<T>(endpoint: string, useFraudApi = false): Promise<ApiResponse<T>> {
@@ -148,20 +191,20 @@ class ApiClient {
     });
   }
 
-  // Health Check
+  // Health Check with better error handling
   async checkHealth(): Promise<{ main: boolean; fraud: boolean }> {
     const results = { main: false, fraud: false };
     
     try {
-      await this.request('http://localhost:8000/api/health');
-      results.main = true;
+      const mainResponse = await this.request('http://localhost:8000/health');
+      results.main = mainResponse.success;
     } catch (error) {
       console.warn('Main API health check failed:', error);
     }
 
     try {
-      await this.request('http://localhost:8001/health');
-      results.fraud = true;
+      const fraudResponse = await this.request('http://localhost:8001/health');
+      results.fraud = fraudResponse.success;
     } catch (error) {
       console.warn('Fraud API health check failed:', error);
     }
@@ -187,6 +230,7 @@ class ApiClient {
   }
 
   async logout(): Promise<void> {
+    this.cancelAllRequests(); // Cancel any pending requests
     this.token = null;
     if (typeof window !== 'undefined') {
       localStorage.removeItem('guardian_token');

@@ -128,6 +128,7 @@ interface GuardianStoreState {
   setActiveWorkflows: (workflows: any[]) => void
   setSentinelMetrics: (metrics: SentinelMetrics) => void
   setActiveAlerts: (alerts: any[]) => void
+  addAlert: (alert: any) => void
   
   // UI Actions
   toggleSidebar: () => void
@@ -222,6 +223,19 @@ export const useGuardianStore = create<GuardianStoreState>()(
         state.activeAlerts = alerts
       }),
 
+      addAlert: (alert) => set((state) => {
+        // Check if alert already exists to prevent duplicates
+        const exists = state.activeAlerts.some(existing => existing.id === alert.id);
+        if (!exists) {
+          state.activeAlerts.push(alert);
+          
+          // Keep only last 100 alerts
+          if (state.activeAlerts.length > 100) {
+            state.activeAlerts = state.activeAlerts.slice(-100);
+          }
+        }
+      }),
+
       // UI actions
       toggleSidebar: () => set((state) => {
         state.sidebarCollapsed = !state.sidebarCollapsed
@@ -281,6 +295,15 @@ export const useActiveAlerts = () => useGuardianStore((state) => state.activeAle
 export const useSidebarCollapsed = () => useGuardianStore((state) => state.sidebarCollapsed)
 export const useSelectedTab = () => useGuardianStore((state) => state.selectedTab)
 export const useNotifications = () => useGuardianStore((state) => state.notifications)
+
+// Stable action selectors to prevent infinite re-renders
+export const useAddAlert = () => useGuardianStore((state) => state.addAlert)
+export const useSetDashboardStats = () => useGuardianStore((state) => state.setDashboardOverview)
+export const useSetActiveRequests = () => useGuardianStore((state) => state.setActiveRequests)
+export const useSetAgents = () => useGuardianStore((state) => state.setAgents)
+export const useSetSentinelMetrics = () => useGuardianStore((state) => state.setSentinelMetrics)
+export const useSetBackendHealth = () => useGuardianStore((state) => state.setBackendHealth)
+export const useSetConnectionStatus = () => useGuardianStore((state) => state.setConnectionStatus)
 
 // Subscribe to connection status changes
 useGuardianStore.subscribe(
