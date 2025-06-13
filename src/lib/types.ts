@@ -41,20 +41,24 @@ export type GuardianJurisdiction =
 // Voting System Types  
 export interface DeAnonymizationRequest {
   id: string;
-  requestingGuardianId: string;
-  transactionHash: string;
-  blockchainNetwork: string;
-  evidenceHash: string;
+  requestingGuardianId?: string;
+  transactionHash?: string;
+  transactionId?: string; // API compatibility
+  blockchainNetwork?: string;
+  evidenceHash?: string;
   evidenceIpfsCid?: string;
-  complianceReason: string;
-  urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
-  consensusThreshold: number;
-  privacyImpactAssessment: PrivacyImpactAssessment;
+  complianceReason?: string;
+  description?: string; // API compatibility
+  urgencyLevel?: 'low' | 'medium' | 'high' | 'critical';
+  urgency?: 'low' | 'medium' | 'high' | 'critical'; // API compatibility
+  consensusThreshold?: number;
+  requiredVotes?: number; // API compatibility
+  privacyImpactAssessment?: PrivacyImpactAssessment;
   deadline: string;
   status: RequestStatus;
   createdAt: string;
-  currentVotes: Vote[];
-  consensusProgress: number; // percentage
+  currentVotes: Vote[] | number; // API compatibility
+  consensusProgress?: number; // percentage
 }
 
 export interface PrivacyImpactAssessment {

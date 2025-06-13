@@ -64,7 +64,8 @@ function VotingCard({ request, onVote, onViewDetails, handleDragStart }: VotingC
     ? new Date(request.deadline).getTime() - currentTime.getTime()
     : 0;
   const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60)));
-  const consensusReached = request.consensusProgress >= 100;
+  const consensusProgress = request.consensusProgress || ((request.currentVotes || 0) / (request.requiredVotes || 3)) * 100;
+  const consensusReached = consensusProgress >= 100;
 
   return (
     <motion.div
@@ -76,18 +77,18 @@ function VotingCard({ request, onVote, onViewDetails, handleDragStart }: VotingC
       whileHover={{ scale: 1.02 }}
       draggable="true"
       onDragStart={(e) => handleDragStart?.(e, request)}
-      className={`cursor-grab active:cursor-grabbing rounded-lg border-l-4 bg-card border p-4 space-y-3 ${getUrgencyColor(request.urgencyLevel)} transition-all duration-200 hover:shadow-md`}
+      className={`cursor-grab active:cursor-grabbing rounded-lg border-l-4 bg-card border p-4 space-y-3 ${getUrgencyColor(request.urgencyLevel || request.urgency)} transition-all duration-200 hover:shadow-md`}
     >
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-medium line-clamp-2">{request.complianceReason}</p>
+          <p className="text-sm font-medium line-clamp-2">{request.complianceReason || request.description || 'Compliance Request'}</p>
           <p className="text-xs text-muted-foreground">
-            {request.blockchainNetwork} • {request.transactionHash.slice(0, 8)}...
+            {request.blockchainNetwork || 'Ethereum'} • {(request.transactionHash || request.transactionId || '0x000000')?.slice(0, 8)}...
           </p>
         </div>
-        <Badge variant={getUrgencyBadge(request.urgencyLevel)} className="text-xs">
-          {request.urgencyLevel}
+        <Badge variant={getUrgencyBadge(request.urgencyLevel || request.urgency)} className="text-xs">
+          {request.urgencyLevel || request.urgency || 'medium'}
         </Badge>
       </div>
 
@@ -95,11 +96,11 @@ function VotingCard({ request, onVote, onViewDetails, handleDragStart }: VotingC
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Consensus Progress</span>
-          <span className="font-medium">{request.consensusProgress.toFixed(0)}%</span>
+          <span className="font-medium">{(request.consensusProgress || ((request.currentVotes || 0) / (request.requiredVotes || 3)) * 100).toFixed(0)}%</span>
         </div>
-        <Progress value={request.consensusProgress} className="h-2" />
+        <Progress value={request.consensusProgress || ((request.currentVotes || 0) / (request.requiredVotes || 3)) * 100} className="h-2" />
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{request.currentVotes?.length || 0} votes</span>
+          <span>{typeof request.currentVotes === 'number' ? request.currentVotes : (request.currentVotes?.length || 0)} votes</span>
           <span>{hoursLeft}h remaining</span>
         </div>
       </div>

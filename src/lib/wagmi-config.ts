@@ -9,15 +9,15 @@ export const config = createConfig({
   connectors: [
     injected(),
     metaMask(),
-    walletConnect({ 
+    ...(typeof window !== 'undefined' ? [walletConnect({ 
       projectId: projectId,
       metadata: {
         name: 'GuardianOS',
         description: 'Multi-agent regulatory compliance orchestration system',
-        url: typeof window !== 'undefined' ? window.location.origin : 'https://guardianos.ai',
+        url: window.location.origin,
         icons: ['https://guardianos.ai/icon.png']
       }
-    }),
+    })] : []),
     safe(),
   ],
   transports: {

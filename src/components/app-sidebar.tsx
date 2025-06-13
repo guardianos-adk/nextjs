@@ -20,6 +20,8 @@ import {
   Lock,
   Eye,
   Zap,
+  Search,
+  Database,
 } from "lucide-react";
 
 import { SearchForm } from "@/components/search-form";
@@ -54,6 +56,13 @@ const navigationData = {
     {
       title: "Compliance Operations",
       items: [
+        {
+          title: "Compliance Intelligence",
+          url: "/dashboard/compliance",
+          icon: Database,
+          badge: "new",
+          description: "AI-powered compliance data search and monitoring",
+        },
         {
           title: "Active Requests",
           url: "/dashboard/voting",
