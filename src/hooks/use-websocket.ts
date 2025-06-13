@@ -313,31 +313,31 @@ export function useWebSocket(
   };
 }
 
-// Specialized hooks for different namespaces
+// Specialized hooks for different services (temporarily disabled for debugging)
 export function useVotingWebSocket() {
-  return useWebSocket('/voting', {
-    autoConnect: true,
+  return useWebSocket('/', {
+    autoConnect: false, // Temporarily disable auto-connect
     maxRetries: 3,
     retryDelay: 5000,
-    fallbackMode: false, // Disable fallback mode to enable connections
+    fallbackMode: true, // Enable fallback mode to prevent connection attempts
   });
 }
 
 export function useSentinelWebSocket() {
-  return useWebSocket('/sentinel', {
-    autoConnect: true,
+  return useWebSocket('/', {
+    autoConnect: false, // Temporarily disable auto-connect
     maxRetries: 3,
     retryDelay: 5000,
-    fallbackMode: false, // Disable fallback mode to enable connections
+    fallbackMode: true, // Enable fallback mode to prevent connection attempts
   });
 }
 
 export function useAgentWebSocket() {
-  return useWebSocket('/agents', {
-    autoConnect: true,
+  return useWebSocket('/', {
+    autoConnect: false, // Temporarily disable auto-connect
     maxRetries: 3,
     retryDelay: 5000,
-    fallbackMode: false, // Disable fallback mode to enable connections
+    fallbackMode: true, // Enable fallback mode to prevent connection attempts
   });
 }
 
