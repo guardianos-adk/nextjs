@@ -32,7 +32,8 @@ import {
   Code2,
   Coins,
   Scale,
-  Building
+  Building,
+  LayoutDashboard
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,14 +83,14 @@ export default function LandingPage() {
             
             <div className="flex items-center gap-4">
               <Link href="/guide">
-                <button className="guardian-button-secondary group">
-                  <BookOpen className="w-4 h-4 mr-1 inline transition-transform group-hover:rotate-12" />
+                <button className="guardian-button-secondary group flex items-center">
+                  <BookOpen className="w-4 h-4 mr-2 transition-transform group-hover:rotate-12" />
                   Guide
                 </button>
               </Link>
               <Link href="/dashboard">
-                <button className="guardian-button-primary group">
-                  <Play className="w-4 h-4 mr-1 inline transition-transform group-hover:scale-110" />
+                <button className="guardian-button-primary group flex items-center">
+                  <LayoutDashboard className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
                   Dashboard
                 </button>
               </Link>
@@ -127,13 +128,13 @@ export default function LandingPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Link href="/dashboard">
-                <button className="guardian-button-primary text-lg px-8 py-4 group">
-                  <Play className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
+                <button className="guardian-button-primary text-lg px-8 py-4 group flex items-center">
+                  <LayoutDashboard className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
                   Dashboard
                 </button>
               </Link>
               <Link href="/guide">
-                <button className="guardian-button-secondary text-lg px-8 py-4 group">
+                <button className="guardian-button-secondary text-lg px-8 py-4 group flex items-center">
                   <BookOpen className="h-5 w-5 mr-2 transition-transform group-hover:rotate-12" />
                   Guide
                 </button>
