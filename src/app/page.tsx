@@ -108,22 +108,29 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="max-w-5xl mx-auto text-center"
           >
-            <div className="guardian-badge mb-8">
+            <motion.div 
+              className="guardian-badge mb-8"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               <Shield className="h-4 w-4 mr-2" />
               <span className="guardian-emphasis">Enterprise Ready</span> • <span className="guardian-emphasis">Regulatory Compliant</span>
-            </div>
+            </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-black mb-8 tracking-tight">
-              <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Institutional Blockchain</span>
+            <h1 className="mb-8">
+              <span className="text-6xl md:text-8xl font-black tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">INSTITUTIONAL</span>
               <br />
-              <span className="text-slate-900 dark:text-slate-100">Compliance Platform</span>
+              <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                Blockchain Compliance Platform
+              </span>
             </h1>
             
-            <p className="text-xl md:text-2xl leading-relaxed mb-12 text-slate-600 dark:text-slate-300 max-w-3xl mx-auto font-light">
-              GuardianOS connects institutions to blockchain networks with built-in 
-              <span className="font-medium text-slate-900 dark:text-slate-100"> monitoring</span>, 
-              <span className="font-medium text-slate-900 dark:text-slate-100"> compliance tools</span>, and 
-              <span className="font-medium text-slate-900 dark:text-slate-100"> consensus protocols</span> for 
+            <p className="text-xl md:text-2xl leading-relaxed mb-12 text-slate-700 dark:text-slate-200 max-w-3xl mx-auto">
+              Connect institutions to blockchain networks with 
+              <span className="font-semibold bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-100 dark:to-slate-200 bg-clip-text text-transparent"> built-in monitoring</span>, 
+              <span className="font-semibold bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-100 dark:to-slate-200 bg-clip-text text-transparent"> compliance tools</span>, and 
+              <span className="font-semibold bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-100 dark:to-slate-200 bg-clip-text text-transparent"> consensus protocols</span> for 
               privacy-preserving regulatory oversight.
             </p>
             
@@ -143,22 +150,46 @@ export default function LandingPage() {
             </div>
             
             <div className="grid md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="guardian-metric-card">
+              <motion.div 
+                className="guardian-metric-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                whileHover={{ scale: 1.05 }}
+              >
                 <div className="guardian-metric-value">3/5</div>
                 <div className="guardian-metric-label">Guardian Consensus</div>
-              </div>
-              <div className="guardian-metric-card">
+              </motion.div>
+              <motion.div 
+                className="guardian-metric-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                whileHover={{ scale: 1.05 }}
+              >
                 <div className="guardian-metric-value">ADK</div>
                 <div className="guardian-metric-label">Google AI Agents</div>
-              </div>
-              <div className="guardian-metric-card">
+              </motion.div>
+              <motion.div 
+                className="guardian-metric-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                whileHover={{ scale: 1.05 }}
+              >
                 <div className="guardian-metric-value">ZK</div>
                 <div className="guardian-metric-label">Privacy Proofs</div>
-              </div>
-              <div className="guardian-metric-card">
+              </motion.div>
+              <motion.div 
+                className="guardian-metric-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                whileHover={{ scale: 1.05 }}
+              >
                 <div className="guardian-metric-value">5</div>
                 <div className="guardian-metric-label">Jurisdictions</div>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -179,8 +210,9 @@ export default function LandingPage() {
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 The Challenge
               </div>
-              <h2 className="guardian-heading-2 mb-6">
-                <span className="guardian-emphasis-primary">€1.5 Trillion</span> in Unbanked Crypto
+              <h2 className="text-4xl md:text-5xl font-black mb-6">
+                <span className="bg-gradient-to-r from-red-600 to-red-400 bg-clip-text text-transparent">€1.5 Trillion</span>
+                <span className="text-slate-900 dark:text-slate-100"> in Unbanked Crypto</span>
               </h2>
               <p className="guardian-body-large text-muted-foreground max-w-3xl mx-auto">
                 Traditional institutions face an <span className="guardian-emphasis">impossible choice</span>: 
@@ -273,9 +305,10 @@ export default function LandingPage() {
                 <Lightbulb className="h-4 w-4 mr-2" />
                 Our Approach
               </div>
-              <h2 className="guardian-heading-2 mb-6">
-                <span className="guardian-emphasis-primary">Privacy Pools</span> with 
-                <span className="guardian-emphasis-primary"> Guardian Networks</span>
+              <h2 className="text-4xl md:text-5xl font-black mb-6">
+                <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Privacy Pools</span>
+                <span className="text-slate-900 dark:text-slate-100"> with</span>
+                <span className="bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent"> Guardian Networks</span>
               </h2>
               <p className="guardian-body-large text-muted-foreground max-w-3xl mx-auto">
                 Based on <span className="guardian-emphasis">Vitalik Buterin's Privacy Pools concept</span>, 
@@ -425,8 +458,9 @@ export default function LandingPage() {
                 <Zap className="h-4 w-4 mr-2" />
                 Platform Features
               </div>
-              <h2 className="guardian-heading-2 mb-6">
-                Enterprise-Grade <span className="guardian-emphasis-primary">Compliance Infrastructure</span>
+              <h2 className="text-4xl md:text-5xl font-black mb-6">
+                <span className="text-slate-900 dark:text-slate-100">Enterprise-Grade</span>
+                <span className="bg-gradient-to-r from-emerald-600 to-emerald-400 bg-clip-text text-transparent"> Compliance Infrastructure</span>
               </h2>
               <p className="guardian-body-large text-muted-foreground max-w-3xl mx-auto">
                 Everything institutions need to <span className="guardian-emphasis">embrace blockchain</span> while 
@@ -581,8 +615,9 @@ export default function LandingPage() {
                 <Layers className="h-4 w-4 mr-2" />
                 Technical Architecture
               </div>
-              <h2 className="guardian-heading-2 mb-6">
-                Built for <span className="guardian-emphasis-primary">Scale & Security</span>
+              <h2 className="text-4xl md:text-5xl font-black mb-6">
+                <span className="text-slate-900 dark:text-slate-100">Built for</span>
+                <span className="bg-gradient-to-r from-amber-600 to-amber-400 bg-clip-text text-transparent"> Scale & Security</span>
               </h2>
               <p className="guardian-body-large text-muted-foreground max-w-3xl mx-auto">
                 Three-layer architecture combining <span className="guardian-emphasis">smart contracts</span>, 
@@ -695,8 +730,9 @@ export default function LandingPage() {
                 <FileText className="h-4 w-4 mr-2" />
                 Learn More
               </div>
-              <h2 className="guardian-heading-2 mb-6">
-                Research & <span className="guardian-emphasis-primary">Resources</span>
+              <h2 className="text-4xl md:text-5xl font-black mb-6">
+                <span className="text-slate-900 dark:text-slate-100">Research &</span>
+                <span className="bg-gradient-to-r from-indigo-600 to-indigo-400 bg-clip-text text-transparent"> Resources</span>
               </h2>
               <p className="guardian-body-large text-muted-foreground max-w-3xl mx-auto">
                 Deep dive into the <span className="guardian-emphasis">technology and concepts</span> behind GuardianOS
@@ -760,8 +796,10 @@ export default function LandingPage() {
             </div>
 
             <div className="mt-16 text-center">
-              <h3 className="guardian-heading-3 mb-6">
-                Ready to bring <span className="guardian-emphasis-primary">blockchain compliance</span> to your institution?
+              <h3 className="text-3xl md:text-4xl font-bold mb-6">
+                <span className="text-slate-900 dark:text-slate-100">Ready to bring</span>
+                <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent"> blockchain compliance</span>
+                <span className="text-slate-900 dark:text-slate-100"> to your institution?</span>
               </h3>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/dashboard">
