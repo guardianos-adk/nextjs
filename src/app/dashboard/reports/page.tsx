@@ -188,7 +188,7 @@ export default function ReportsPage() {
             type: 'ad-hoc' as const,
             jurisdiction: req.jurisdiction || "EU",
             generatedDate: req.updatedAt || req.createdAt,
-            period: new Date(req.createdAt).toLocaleDateString(),
+            period: req.createdAt,
             status: 'ready' as const,
             size: `${245 + (index * 37) % 500} KB`,
             sections: ["Investigation Summary", "Evidence Analysis", "Compliance Decision", "Recommendations"]
@@ -265,7 +265,7 @@ export default function ReportsPage() {
           type: reportType as any,
           jurisdiction: reportJurisdiction,
           generatedDate: new Date().toISOString(),
-          period: `${reportPeriod.from.toLocaleDateString()} - ${reportPeriod.to.toLocaleDateString()}`,
+          period: `${reportPeriod.from.toISOString().split('T')[0]} - ${reportPeriod.to.toISOString().split('T')[0]}`,
           status: 'ready',
           size: "1.5 MB",
           sections: data.sections || ["Executive Summary", "Transaction Analysis", "Risk Assessment", "Recommendations"]
@@ -281,7 +281,7 @@ export default function ReportsPage() {
           type: reportType as any,
           jurisdiction: reportJurisdiction,
           generatedDate: new Date().toISOString(),
-          period: `${reportPeriod.from.toLocaleDateString()} - ${reportPeriod.to.toLocaleDateString()}`,
+          period: `${reportPeriod.from.toISOString().split('T')[0]} - ${reportPeriod.to.toISOString().split('T')[0]}`,
           status: 'ready',
           size: "1.5 MB",
           sections: ["Executive Summary", "Transaction Analysis", "Risk Assessment", "Recommendations"]
@@ -503,7 +503,7 @@ export default function ReportsPage() {
                                   <span>•</span>
                                   <span>Size: {report.size}</span>
                                   <span>•</span>
-                                  <span>Generated: {new Date(report.generatedDate).toLocaleDateString()}</span>
+                                  <span>Generated: {report.generatedDate}</span>
                                 </div>
                                 <div className="flex gap-2 flex-wrap mt-2">
                                   {report.sections.map(section => (
@@ -673,7 +673,7 @@ export default function ReportsPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Next Report Due</span>
                     <span className="text-sm text-muted-foreground">
-                      {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                      {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
                     </span>
                   </div>
                 </div>

@@ -252,7 +252,7 @@ Transaction Flow:
     pdf.setFontSize(8);
     pdf.setTextColor(lightGray);
     pdf.text("© 2024 GuardianOS - Institutional Blockchain Compliance Platform", pageWidth / 2, 280, { align: "center" });
-    pdf.text("Generated: " + new Date().toLocaleDateString(), pageWidth / 2, 285, { align: "center" });
+    pdf.text("Generated: " + new Date().toISOString().split('T')[0], pageWidth / 2, 285, { align: "center" });
 
     // Save the PDF
     pdf.save("GuardianOS-Executive-Summary.pdf");
