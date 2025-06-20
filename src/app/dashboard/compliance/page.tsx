@@ -7,8 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Search, AlertTriangle, CheckCircle, Clock, RefreshCw, Database, Shield, Globe } from 'lucide-react'
-import { useToast } from "@/hooks/use-toast"
+import { Search, AlertTriangle, CheckCircle, Clock, RefreshCw, Database, Shield, Globe, Wifi, WifiOff } from 'lucide-react'
+import { toast } from "sonner"
+import { AppSidebar } from "@/components/app-sidebar"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 interface ComplianceData {
   regulations: any[]
@@ -50,12 +54,20 @@ export default function CompliancePage() {
   })
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
-  const { toast } = useToast()
+  const [isConnected, setIsConnected] = useState(false)
 
-  // Load initial data
+  // Load initial data and set up auto-refresh
   useEffect(() => {
     loadComplianceData()
     loadSyncStatus()
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      loadComplianceData()
+      loadSyncStatus()
+    }, 30000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   const loadComplianceData = async () => {
@@ -63,15 +75,15 @@ export default function CompliancePage() {
       setLoading(true)
       
       // Load recent regulations
-      const regulationsResponse = await fetch('/api/v1/compliance/regulations/recent?days=7')
+      const regulationsResponse = await fetch('http://localhost:8000/api/v1/compliance/regulations/recent?days=7')
       const regulationsData = await regulationsResponse.json()
       
       // Load compliance updates
-      const updatesResponse = await fetch('/api/v1/compliance/updates?days=30&limit=50')
+      const updatesResponse = await fetch('http://localhost:8000/api/v1/compliance/updates?days=30&limit=50')
       const updatesData = await updatesResponse.json()
       
       // Load sanctions statistics
-      const statsResponse = await fetch('/api/v1/compliance/sanctions/statistics')
+      const statsResponse = await fetch('http://localhost:8000/api/v1/compliance/sanctions/statistics')
       const statsData = await statsResponse.json()
       
       setComplianceData({
@@ -81,13 +93,11 @@ export default function CompliancePage() {
         statistics: statsData
       })
       
+      setIsConnected(true)
     } catch (error) {
       console.error('Error loading compliance data:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load compliance data",
-        variant: "destructive"
-      })
+      setIsConnected(false)
+      toast.error("Failed to load compliance data")
     } finally {
       setLoading(false)
     }
@@ -95,7 +105,7 @@ export default function CompliancePage() {
 
   const loadSyncStatus = async () => {
     try {
-      const response = await fetch('/api/v1/compliance/sync/status')
+      const response = await fetch('http://localhost:8000/api/v1/compliance/sync/status')
       const data = await response.json()
       setSyncStatus(data)
     } catch (error) {
@@ -108,7 +118,7 @@ export default function CompliancePage() {
     
     try {
       setLoading(true)
-      const response = await fetch('/api/v1/compliance/search', {
+      const response = await fetch('http://localhost:8000/api/v1/compliance/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -129,11 +139,7 @@ export default function CompliancePage() {
       
     } catch (error) {
       console.error('Search error:', error)
-      toast({
-        title: "Search Error",
-        description: "Failed to search compliance data",
-        variant: "destructive"
-      })
+      toast.error("Failed to search compliance data")
     } finally {
       setLoading(false)
     }
@@ -141,7 +147,7 @@ export default function CompliancePage() {
 
   const handleSanctionsCheck = async (entityName: string) => {
     try {
-      const response = await fetch('/api/v1/compliance/sanctions/check', {
+      const response = await fetch('http://localhost:8000/api/v1/compliance/sanctions/check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -154,43 +160,32 @@ export default function CompliancePage() {
       
       const result = await response.json()
       
-      toast({
-        title: result.is_sanctioned ? "⚠️ Sanctions Match Found" : "✅ No Sanctions Found",
-        description: `Entity: ${entityName} - Risk Level: ${result.risk_level}`,
-        variant: result.is_sanctioned ? "destructive" : "default"
-      })
+      if (result.is_sanctioned) {
+        toast.error(`⚠️ Sanctions Match Found - Entity: ${entityName} - Risk Level: ${result.risk_level}`)
+      } else {
+        toast.success(`✅ No Sanctions Found - Entity: ${entityName} - Risk Level: ${result.risk_level}`)
+      }
       
       return result
     } catch (error) {
       console.error('Sanctions check error:', error)
-      toast({
-        title: "Check Failed",
-        description: "Failed to check sanctions",
-        variant: "destructive"
-      })
+      toast.error("Failed to check sanctions")
     }
   }
 
   const triggerSync = async () => {
     try {
-      const response = await fetch('/api/v1/compliance/sync/trigger', {
+      const response = await fetch('http://localhost:8000/api/v1/compliance/sync/trigger', {
         method: 'POST'
       })
       
       if (response.ok) {
-        toast({
-          title: "Sync Started",
-          description: "Compliance data synchronization initiated"
-        })
+        toast.success("Compliance data synchronization initiated")
         loadSyncStatus()
       }
     } catch (error) {
       console.error('Sync trigger error:', error)
-      toast({
-        title: "Sync Failed",
-        description: "Failed to trigger sync",
-        variant: "destructive"
-      })
+      toast.error("Failed to trigger sync")
     }
   }
 
@@ -220,23 +215,69 @@ export default function CompliancePage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Compliance Intelligence</h2>
-        <div className="flex items-center space-x-2">
-          <Button 
-            onClick={triggerSync} 
-            variant="outline" 
-            size="sm"
-            disabled={syncStatus?.syncInProgress}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${syncStatus?.syncInProgress ? 'animate-spin' : ''}`} />
-            {syncStatus?.syncInProgress ? 'Syncing...' : 'Sync Data'}
-          </Button>
-        </div>
-      </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="/dashboard">
+                    Dashboard
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Compliance Intelligence</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </header>
+        
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="flex items-center justify-between space-y-2">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">Compliance Intelligence</h2>
+              <p className="text-muted-foreground">
+                Regulatory monitoring and sanctions screening system
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={triggerSync} 
+                variant="outline" 
+                size="sm"
+                disabled={syncStatus?.syncInProgress}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${syncStatus?.syncInProgress ? 'animate-spin' : ''}`} />
+                {syncStatus?.syncInProgress ? 'Syncing...' : 'Sync Data'}
+              </Button>
+              <Badge variant={isConnected ? "default" : "destructive"} className="text-xs">
+                {isConnected ? (
+                  <><Wifi className="h-3 w-3 mr-1" /> Connected</>
+                ) : (
+                  <><WifiOff className="h-3 w-3 mr-1" /> Offline</>
+                )}
+              </Badge>
+            </div>
+          </div>
 
-      {/* Search Bar */}
+          {!isConnected && (
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-yellow-800">
+                  <WifiOff className="h-5 w-5" />
+                  <p>Backend services are not available. Showing cached compliance data.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Search Bar */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -698,6 +739,8 @@ export default function CompliancePage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

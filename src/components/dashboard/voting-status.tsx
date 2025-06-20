@@ -15,11 +15,15 @@ import {
   CheckCircle, 
   XCircle,
   Eye,
-  Gavel
+  Gavel,
+  Wifi,
+  WifiOff
 } from "lucide-react";
-import { useState, DragEvent } from "react";
+import { useState, useEffect, DragEvent } from "react";
 import { DeAnonymizationRequest, VoteDecision } from "@/lib/types";
 import { useCurrentTime } from "@/hooks/use-client-only";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface VotingColumnProps {
   title: string;
@@ -146,7 +150,7 @@ function VotingCard({ request, onVote, onViewDetails, handleDragStart }: VotingC
           <Users className="h-3 w-3" />
           <span>{request.consensusThreshold} guardians required</span>
         </div>
-        {request.privacyImpactAssessment.riskLevel && (
+        {request.privacyImpactAssessment?.riskLevel && (
           <div className="flex items-center gap-1">
             <Shield className="h-3 w-3" />
             <span className={
@@ -227,93 +231,36 @@ function VotingColumn({ title, requests, headingColor, onVote, onViewDetails }: 
 }
 
 export function VotingStatusBoard() {
-  const { activeRequests, requestsLoading } = useVoting();
+  const { activeRequests, requestsLoading, submitVote } = useVoting();
+  const [isConnected, setIsConnected] = useState(false);
+  
+  // Check if we have real data
+  useEffect(() => {
+    // We're connected if we have real data or if we've tried loading and got an empty array
+    setIsConnected(activeRequests.length > 0 || (Array.isArray(activeRequests) && !requestsLoading));
+  }, [activeRequests, requestsLoading]);
 
-  // Mock data for demonstration - using fixed base time to prevent hydration issues
-  const baseTime = new Date('2024-06-11T12:00:00Z');
-  const mockRequests: DeAnonymizationRequest[] = [
-    {
-      id: "req-1",
-      requestingGuardianId: "guardian-ecb",
-      transactionHash: "0x1a2b3c4d5e6f7890abcdef1234567890abcdef12",
-      blockchainNetwork: "ethereum",
-      evidenceHash: "0xabcdef1234567890",
-      complianceReason: "Suspected money laundering activity - unusual transaction patterns detected",
-      urgencyLevel: "high",
-      consensusThreshold: 3,
-      privacyImpactAssessment: {
-        affectedParties: 2,
-        dataTypes: ["transaction_amount", "wallet_addresses"],
-        retentionPeriod: "30 days",
-        disclosureScope: "minimal",
-        riskLevel: "medium",
-        mitigationMeasures: ["data_minimization", "access_logging"]
-      },
-      deadline: new Date(baseTime.getTime() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours
-      status: "voting",
-      createdAt: new Date(baseTime.getTime() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-      currentVotes: [],
-      consensusProgress: 33.3
-    },
-    {
-      id: "req-2",
-      requestingGuardianId: "guardian-dnb",
-      transactionHash: "0x9876543210fedcba0987654321fedcba09876543",
-      blockchainNetwork: "polygon",
-      evidenceHash: "0x9876543210fedcba",
-      complianceReason: "Cross-border payment investigation - FATF Travel Rule compliance",
-      urgencyLevel: "medium",
-      consensusThreshold: 3,
-      privacyImpactAssessment: {
-        affectedParties: 5,
-        dataTypes: ["wallet_addresses", "transaction_timing"],
-        retentionPeriod: "90 days",
-        disclosureScope: "partial",
-        riskLevel: "low",
-        mitigationMeasures: ["anonymization", "time_limited_access"]
-      },
-      deadline: new Date(baseTime.getTime() + 1000 * 60 * 60 * 48).toISOString(), // 48 hours
-      status: "pending",
-      createdAt: new Date(baseTime.getTime() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
-      currentVotes: [],
-      consensusProgress: 0
-    },
-    {
-      id: "req-3",
-      requestingGuardianId: "guardian-bafin",
-      transactionHash: "0xfedcba0987654321fedcba0987654321fedcba09",
-      blockchainNetwork: "ethereum",
-      evidenceHash: "0xfedcba0987654321",
-      complianceReason: "Terrorism financing investigation - urgent regulatory inquiry",
-      urgencyLevel: "critical",
-      consensusThreshold: 3,
-      privacyImpactAssessment: {
-        affectedParties: 1,
-        dataTypes: ["full_transaction_details", "metadata"],
-        retentionPeriod: "180 days",
-        disclosureScope: "full",
-        riskLevel: "high",
-        mitigationMeasures: ["enhanced_security", "audit_trail"]
-      },
-      deadline: new Date(baseTime.getTime() + 1000 * 60 * 60 * 6).toISOString(), // 6 hours
-      status: "voting",
-      createdAt: new Date(baseTime.getTime() - 1000 * 60 * 60).toISOString(), // 1 hour ago
-      currentVotes: [],
-      consensusProgress: 66.7
+  // Use actual data from API
+  const requests = activeRequests || [];
+
+  const handleVote = async (requestId: string, decision: VoteDecision) => {
+    if (!submitVote) {
+      toast.error("Backend not connected. Please ensure the backend services are running.");
+      return;
     }
-  ];
-
-  const requests = activeRequests.length > 0 ? activeRequests : mockRequests;
-
-  const handleVote = (requestId: string, decision: VoteDecision) => {
-    console.log(`Voting ${decision} on request ${requestId}`);
-    // For now, just log the vote. In real implementation, this would trigger a modal
-    // or navigation to a detailed voting page
+    
+    try {
+      await submitVote(requestId, decision, "Regulatory compliance requirement");
+      toast.success(`Your ${decision.toLowerCase()} vote has been recorded.`);
+    } catch (error) {
+      toast.error("Unable to submit your vote. Please try again.");
+    }
   };
 
   const handleViewDetails = (requestId: string) => {
     console.log(`Viewing details for request ${requestId}`);
     // Navigate to detailed view
+    toast.info("Detailed view will be available in the next update.");
   };
 
   if (requestsLoading) {
@@ -362,17 +309,42 @@ export function VotingStatusBoard() {
               Guardian Voting Board
             </CardTitle>
             <div className="flex items-center gap-2">
+              {/* Connection status */}
+              <Badge 
+                variant={isConnected ? "secondary" : "outline"} 
+                className={cn(
+                  "text-xs",
+                  !isConnected && "opacity-60"
+                )}
+              >
+                {isConnected ? (
+                  <><Wifi className="h-3 w-3 mr-1" /> Live</>  
+                ) : (
+                  <><WifiOff className="h-3 w-3 mr-1" /> Offline</>
+                )}
+              </Badge>
               <Badge variant="outline" className="text-xs">
                 {requests.length} active requests
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                <Clock className="h-3 w-3 mr-1" />
-                Real-time
               </Badge>
             </div>
           </div>
         </CardHeader>
         <CardContent>
+          {/* Show connection message when no data */}
+          {!isConnected && !requestsLoading && (
+            <div className="mb-4 p-4 rounded-lg border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
+              <div className="flex items-start gap-2">
+                <WifiOff className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <p className="font-medium">Backend not connected</p>
+                  <p className="text-xs mt-1 opacity-80">
+                    No voting requests available. Please ensure the backend services are running on port 8000.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="flex gap-6 overflow-x-auto pb-4">
             <VotingColumn
               title="Pending Review"

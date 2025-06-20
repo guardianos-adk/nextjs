@@ -5,8 +5,9 @@ import { useDashboard } from "@/hooks/use-guardian";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Users, Clock, Shield, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Clock, Shield, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import CountUp from "react-countup";
+import { cn } from "@/lib/utils";
 
 interface MetricCardProps {
   title: string;
@@ -106,23 +107,22 @@ function MetricCard({
 }
 
 export function DashboardOverviewCards() {
-  const { overview, systemHealth, isLoading } = useDashboard();
+  const { overview, systemHealth, isLoading, error } = useDashboard();
+  const isConnected = !!overview && !error;
 
-  // Mock data for demonstration - replace with real data from API
-  const mockData = {
-    totalGuardians: 12,
-    activeRequests: 8,
-    consensusRate: 94.7,
-    systemHealth: "optimal",
+  // Use actual data from API, show zeros when loading
+  const data = overview || {
+    totalGuardians: 0,
+    activeRequests: 0,
+    consensusRate: 0,
+    systemHealth: "unknown",
     recentActivity: []
   };
-
-  const data = overview || mockData;
   const health = systemHealth || {
-    agents: { healthy: 5, total: 6 },
-    consensus: { successRate: 94.7, avgTime: 2.3 },
-    throughput: { current: 156, capacity: 200 },
-    alerts: { active: 2, critical: 0 }
+    agents: { healthy: 0, total: 0 },
+    consensus: { successRate: 0, avgTime: 0 },
+    throughput: { current: 0, capacity: 0 },
+    alerts: { active: 0, critical: 0 }
   };
 
   const getHealthColor = (status: string) => {
@@ -147,11 +147,29 @@ export function DashboardOverviewCards() {
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-4">
+      {/* Connection Status */}
+      <div className="flex items-center gap-2 text-sm">
+        {isConnected ? (
+          <>
+            <Wifi className="h-4 w-4 text-green-500" />
+            <span className="text-muted-foreground">Connected to GuardianOS Backend</span>
+          </>
+        ) : (
+          <>
+            <WifiOff className="h-4 w-4 text-yellow-500 animate-pulse" />
+            <span className="text-muted-foreground">
+              {isLoading ? "Connecting to backend..." : "Backend not available - showing default values"}
+            </span>
+          </>
+        )}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <MetricCard
         title="Active Guardians"
         value={data.totalGuardians}
-        change={8.2}
+        change={overview ? 8.2 : undefined}
         changeType="increase"
         icon={<Users className="h-6 w-6" />}
         color="blue"
@@ -161,7 +179,7 @@ export function DashboardOverviewCards() {
       <MetricCard
         title="Pending Requests"
         value={data.activeRequests}
-        change={-12.5}
+        change={overview ? -12.5 : undefined}
         changeType="decrease"
         icon={<Clock className="h-6 w-6" />}
         color="orange"
@@ -171,7 +189,7 @@ export function DashboardOverviewCards() {
       <MetricCard
         title="Consensus Success"
         value={health.consensus.successRate}
-        change={2.1}
+        change={systemHealth ? 2.1 : undefined}
         changeType="increase"
         suffix="%"
         icon={<Shield className="h-6 w-6" />}
@@ -198,12 +216,16 @@ export function DashboardOverviewCards() {
           >
             <Badge 
               variant={getHealthBadge(data.systemHealth)}
-              className="text-xs px-3 py-1 font-medium"
+              className={cn(
+                "text-xs px-3 py-1 font-medium",
+                !isConnected && "opacity-50"
+              )}
             >
-              System {data.systemHealth.charAt(0).toUpperCase() + data.systemHealth.slice(1)}
+              System {data.systemHealth === "unknown" ? "Unknown" : data.systemHealth.charAt(0).toUpperCase() + data.systemHealth.slice(1)}
             </Badge>
           </motion.div>
         )}
+      </div>
       </div>
     </div>
   );

@@ -24,6 +24,8 @@ import {
   Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface QuickActionProps {
   icon: React.ReactNode;
@@ -128,6 +130,24 @@ interface PendingTaskProps {
 
 function PendingTaskItem({ id, type, title, deadline, priority, jurisdiction }: PendingTaskProps) {
   const currentTime = useCurrentTime();
+  const router = useRouter();
+  
+  const handleTaskClick = () => {
+    switch (type) {
+      case 'vote':
+        router.push('/dashboard/voting');
+        toast.info(`Opening voting task: ${title}`);
+        break;
+      case 'review':
+        router.push('/dashboard/compliance');
+        toast.info(`Opening review task: ${title}`);
+        break;
+      case 'approval':
+        router.push('/dashboard/compliance');
+        toast.info(`Opening approval task: ${title}`);
+        break;
+    }
+  };
   
   const priorityColors = {
     low: "text-slate-600 bg-slate-100",
@@ -164,6 +184,7 @@ function PendingTaskItem({ id, type, title, deadline, priority, jurisdiction }: 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer"
+      onClick={handleTaskClick}
     >
       <div className={cn(
         "p-1.5 rounded-md text-white",
@@ -204,6 +225,7 @@ function PendingTaskItem({ id, type, title, deadline, priority, jurisdiction }: 
 export function QuickActions() {
   const { guardian, systemStatus } = useGuardian();
   const currentTime = useCurrentTime();
+  const router = useRouter();
 
   // Use fixed base time to prevent hydration issues
   const baseTime = new Date('2024-06-11T12:00:00Z');
@@ -241,8 +263,60 @@ export function QuickActions() {
   const pendingReviews = 5;
 
   const handleAction = (action: string) => {
-    console.log(`Quick action: ${action}`);
-    // In real implementation, this would navigate to appropriate pages or open modals
+    switch (action) {
+      case 'new-request':
+        // Navigate to new request form
+        router.push('/dashboard/voting?action=new');
+        toast.info('Opening new de-anonymization request form...');
+        break;
+        
+      case 'pending-votes':
+        // Navigate to voting page
+        router.push('/dashboard/voting');
+        toast.info('Navigating to pending votes...');
+        break;
+        
+      case 'alerts':
+        // Navigate to alerts page
+        router.push('/dashboard/alerts');
+        toast.info('Viewing active alerts...');
+        break;
+        
+      case 'evidence-review':
+        // Navigate to compliance page for evidence review
+        router.push('/dashboard/compliance');
+        toast.info('Opening evidence review...');
+        break;
+        
+      case 'dashboard':
+      case 'analytics':
+        // Navigate to analytics page
+        router.push('/dashboard/analytics');
+        toast.info('Opening analytics dashboard...');
+        break;
+        
+      case 'guardians':
+        // Navigate to guardians management
+        router.push('/dashboard/agents');
+        toast.info('Opening guardian management...');
+        break;
+        
+      case 'reports':
+        // Navigate to analytics for reports
+        router.push('/dashboard/analytics?tab=reports');
+        toast.info('Generating compliance reports...');
+        break;
+        
+      case 'settings':
+        // Navigate to settings page
+        router.push('/dashboard/settings');
+        toast.info('Opening settings...');
+        break;
+        
+      default:
+        toast.error(`Action ${action} not implemented yet`);
+        console.log(`Quick action: ${action}`);
+    }
   };
 
   // Format current time safely

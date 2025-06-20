@@ -18,10 +18,14 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Target
+  Target,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { Alert as AlertType } from "@/lib/types";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface FraudAlertProps {
   alert: AlertType;
@@ -106,9 +110,10 @@ interface MetricTileProps {
   trend?: "up" | "down" | "stable";
   icon: React.ReactNode;
   color: string;
+  isLoading?: boolean;
 }
 
-function MetricTile({ title, value, change, trend, icon, color }: MetricTileProps) {
+function MetricTile({ title, value, change, trend, icon, color, isLoading }: MetricTileProps) {
   const getTrendIcon = (trend?: string) => {
     switch (trend) {
       case "up": return <TrendingUp className="h-3 w-3 text-emerald-500" />;
@@ -116,6 +121,17 @@ function MetricTile({ title, value, change, trend, icon, color }: MetricTileProp
       default: return <Activity className="h-3 w-3 text-muted-foreground" />;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className={`p-4 rounded-lg bg-gradient-to-br ${color} border border-border/50`}>
+        <div className="animate-pulse">
+          <div className="h-4 w-20 bg-muted rounded mb-2" />
+          <div className="h-6 w-16 bg-muted rounded" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`p-4 rounded-lg bg-gradient-to-br ${color} border border-border/50`}>
@@ -144,31 +160,16 @@ function MetricTile({ title, value, change, trend, icon, color }: MetricTileProp
   );
 }
 
-function TransactionFlowMonitor() {
+function TransactionFlowMonitor({ metrics, isConnected }: { metrics: any; isConnected: boolean }) {
   const currentTime = useCurrentTime();
   
-  // Mock real-time transaction flow data
-  const [flowData, setFlowData] = useState({
-    totalTransactions: 1247,
-    flaggedTransactions: 23,
-    processingRate: 156,
-    riskScore: 2.3
-  });
-
-  useEffect(() => {
-    if (!currentTime) return;
-    
-    const interval = setInterval(() => {
-      setFlowData(prev => ({
-        totalTransactions: prev.totalTransactions + Math.floor(Math.random() * 5),
-        flaggedTransactions: prev.flaggedTransactions + (Math.random() > 0.9 ? 1 : 0),
-        processingRate: 150 + Math.floor(Math.random() * 20),
-        riskScore: 1.5 + Math.random() * 2
-      }));
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [currentTime]);
+  // Use real metrics if available, otherwise show empty state
+  const flowData = metrics || {
+    totalTransactions: 0,
+    flaggedTransactions: 0,
+    processingRate: 0,
+    riskScore: 0
+  };
 
   const getRiskColor = (score: number) => {
     if (score > 3) return "text-red-500 bg-red-500/10";
@@ -184,8 +185,11 @@ function TransactionFlowMonitor() {
             <Activity className="h-4 w-4 text-primary" />
             Transaction Flow Monitor
           </h4>
-          <Badge variant="outline" className="text-xs">
-            Live
+          <Badge 
+            variant={isConnected ? "secondary" : "outline"} 
+            className={cn("text-xs", !isConnected && "opacity-60")}
+          >
+            {isConnected ? "Live" : "Offline"}
           </Badge>
         </div>
         
@@ -214,7 +218,9 @@ function TransactionFlowMonitor() {
               {flowData.flaggedTransactions}
             </div>
             <div className="text-xs text-muted-foreground">
-              {((flowData.flaggedTransactions / flowData.totalTransactions) * 100).toFixed(2)}% rate
+              {flowData.totalTransactions > 0 
+                ? `${((flowData.flaggedTransactions / flowData.totalTransactions) * 100).toFixed(2)}% rate`
+                : "0% rate"}
             </div>
           </div>
 
@@ -239,10 +245,10 @@ function TransactionFlowMonitor() {
               <CheckCircle className="h-3 w-3 text-green-500" />
             </div>
             <div className="text-lg font-bold text-green-600">
-              Operational
+              {isConnected ? "Operational" : "Disconnected"}
             </div>
             <div className="text-xs text-muted-foreground">
-              All systems active
+              {isConnected ? "All systems active" : "Waiting for connection"}
             </div>
           </div>
         </div>
@@ -252,69 +258,46 @@ function TransactionFlowMonitor() {
 }
 
 export function FraudSentinelMonitor() {
-  const { alerts, acknowledgeAlert } = useSentinel();
-  const [realTimeData, setRealTimeData] = useState({
-    transactionsScanned: 1247,
-    fraudDetected: 23,
-    falsePositives: 5,
-    accuracy: 94.3
-  });
+  const { alerts, metrics, acknowledgeAlert, isLoading, error } = useSentinel();
+  const [isConnected, setIsConnected] = useState(false);
 
-  // Simulate real-time updates
+  // Check if we have real data
   useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeData(prev => ({
-        transactionsScanned: prev.transactionsScanned + Math.floor(Math.random() * 5),
-        fraudDetected: prev.fraudDetected + (Math.random() > 0.95 ? 1 : 0),
-        falsePositives: prev.falsePositives + (Math.random() > 0.98 ? 1 : 0),
-        accuracy: 94.3 + (Math.random() - 0.5) * 2
-      }));
-    }, 5000);
+    setIsConnected(!!metrics && !error && !isLoading);
+  }, [metrics, error, isLoading]);
 
-    return () => clearInterval(interval);
-  }, []);
-
-  // Mock alerts for demonstration (using fixed timestamps to avoid hydration issues)
-  const baseTime = new Date('2024-06-11T12:00:00Z');
-  const mockAlerts: AlertType[] = [
-    {
-      id: "alert-1",
-      type: "fraud_detected",
-      severity: "high",
-      title: "Suspicious Transaction Pattern Detected",
-      description: "Multiple rapid transfers between new addresses exceeding velocity thresholds",
-      timestamp: new Date(baseTime.getTime() - 1000 * 60 * 15).toISOString(),
-      source: "TransactionMonitor",
-      status: "active"
-    },
-    {
-      id: "alert-2", 
-      type: "performance_degradation",
-      severity: "medium",
-      title: "Agent Performance Degradation",
-      description: "RiskAssessment agent response time increased by 45% over baseline",
-      timestamp: new Date(baseTime.getTime() - 1000 * 60 * 30).toISOString(),
-      source: "MonitoringConsensus",
-      status: "active"
-    },
-    {
-      id: "alert-3",
-      type: "fraud_detected",
-      severity: "critical",
-      title: "Sanctions List Match",
-      description: "Transaction involving wallet address on OFAC sanctions list",
-      timestamp: new Date(baseTime.getTime() - 1000 * 60 * 45).toISOString(),
-      source: "ComplianceEngine",
-      status: "acknowledged"
-    }
-  ];
-
-  const alertData = alerts && alerts.length > 0 ? alerts : mockAlerts;
+  // Use actual data from API
+  const alertData = alerts || [];
   const activeAlerts = alertData.filter(a => a.status === "active");
 
-  const handleAcknowledgeAlert = (alertId: string) => {
-    console.log(`Acknowledging alert ${alertId}`);
-    acknowledgeAlert(alertId);
+  const handleAcknowledgeAlert = async (alertId: string) => {
+    if (!acknowledgeAlert) {
+      toast.error("Backend not connected. Please ensure the backend services are running.");
+      return;
+    }
+
+    try {
+      await acknowledgeAlert(alertId);
+      toast.success("Alert acknowledged successfully");
+    } catch (error) {
+      toast.error("Failed to acknowledge alert. Please try again.");
+    }
+  };
+
+  const handleRunDeepScan = () => {
+    if (!isConnected) {
+      toast.error("Backend not connected. Please ensure the fraud monitoring service is running on port 8001.");
+      return;
+    }
+    toast.info("Deep scan feature will be available in the next update.");
+  };
+
+  const handlePerformanceReport = () => {
+    if (!isConnected) {
+      toast.error("Backend not connected. Please ensure the fraud monitoring service is running on port 8001.");
+      return;
+    }
+    toast.info("Performance report feature will be available in the next update.");
   };
 
   return (
@@ -331,62 +314,95 @@ export function FraudSentinelMonitor() {
               FraudSentinel Monitor
             </CardTitle>
             <div className="flex items-center gap-2">
+              {/* Connection status */}
+              <Badge 
+                variant={isConnected ? "secondary" : "outline"} 
+                className={cn("text-xs", !isConnected && "opacity-60")}
+              >
+                {isConnected ? (
+                  <><Wifi className="h-3 w-3 mr-1" /> Connected</>
+                ) : (
+                  <><WifiOff className="h-3 w-3 mr-1" /> Offline</>
+                )}
+              </Badge>
               <Badge variant={activeAlerts.length > 0 ? "destructive" : "default"} className="text-xs">
                 <Bell className="h-3 w-3 mr-1" />
                 {activeAlerts.length} Active Alerts
               </Badge>
               <Badge variant="outline" className="text-xs">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-2" />
-                Monitoring
+                <div className={cn(
+                  "w-2 h-2 rounded-full mr-2",
+                  isConnected ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
+                )} />
+                {isConnected ? "Monitoring" : "Paused"}
               </Badge>
             </div>
           </div>
         </CardHeader>
         
         <CardContent className="space-y-6">
+          {/* Connection warning */}
+          {!isConnected && !isLoading && (
+            <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
+              <div className="flex items-start gap-2">
+                <WifiOff className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <p className="font-medium">Fraud monitoring service not connected</p>
+                  <p className="text-xs mt-1 opacity-80">
+                    Please ensure the fraud monitoring API is running on port 8001.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Real-time Metrics */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <MetricTile
               title="Transactions Scanned"
-              value={realTimeData.transactionsScanned.toLocaleString()}
-              change="+12.3%"
+              value={metrics?.transactionsScanned?.toLocaleString() || "0"}
+              change={isConnected ? "+12.3%" : undefined}
               trend="up"
               icon={<Eye className="h-4 w-4 text-blue-500" />}
               color="from-blue-500/10 to-blue-600/10"
+              isLoading={isLoading}
             />
             
             <MetricTile
               title="Fraud Detected"
-              value={realTimeData.fraudDetected.toString()}
-              change="+8.7%"
+              value={metrics?.fraudDetected?.toString() || "0"}
+              change={isConnected ? "+8.7%" : undefined}
               trend="up"
               icon={<Target className="h-4 w-4 text-red-500" />}
               color="from-red-500/10 to-red-600/10"
+              isLoading={isLoading}
             />
             
             <MetricTile
               title="False Positives"
-              value={realTimeData.falsePositives.toString()}
-              change="-15.2%"
+              value={metrics?.falsePositives?.toString() || "0"}
+              change={isConnected ? "-15.2%" : undefined}
               trend="down"
               icon={<XCircle className="h-4 w-4 text-amber-500" />}
               color="from-amber-500/10 to-amber-600/10"
+              isLoading={isLoading}
             />
             
             <MetricTile
               title="Accuracy Rate"
-              value={`${realTimeData.accuracy.toFixed(1)}%`}
-              change="+2.1%"
+              value={`${metrics?.accuracy?.toFixed(1) || "0.0"}%`}
+              change={isConnected ? "+2.1%" : undefined}
               trend="up"
               icon={<CheckCircle className="h-4 w-4 text-emerald-500" />}
               color="from-emerald-500/10 to-emerald-600/10"
+              isLoading={isLoading}
             />
           </div>
 
           {/* Transaction Flow Monitor */}
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-muted-foreground">Real-time Transaction Analysis</h4>
-            <TransactionFlowMonitor />
+            <TransactionFlowMonitor metrics={metrics} isConnected={isConnected} />
           </div>
 
           {/* Recent Alerts */}
@@ -399,30 +415,51 @@ export function FraudSentinelMonitor() {
               </Button>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {alerts.slice(0, 3).map((alert, index) => (
-                <motion.div
-                  key={alert.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <FraudAlert alert={alert} onAcknowledge={handleAcknowledgeAlert} />
-                </motion.div>
-              ))}
+              {alertData.length > 0 ? (
+                alertData.slice(0, 3).map((alert, index) => (
+                  <motion.div
+                    key={alert.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <FraudAlert alert={alert} onAcknowledge={handleAcknowledgeAlert} />
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">
+                    {isConnected ? "No alerts at this time" : "Waiting for connection..."}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Quick Actions */}
           <div className="flex items-center justify-between pt-4 border-t border-border/50">
             <div className="text-sm text-muted-foreground">
-              Last scan: <span className="font-medium">2.3 seconds ago</span>
+              {isConnected 
+                ? <>Last scan: <span className="font-medium">2.3 seconds ago</span></>
+                : "Scanner offline"}
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleRunDeepScan}
+                disabled={!isConnected}
+              >
                 <Zap className="h-3 w-3 mr-1" />
                 Run Deep Scan
               </Button>
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handlePerformanceReport}
+                disabled={!isConnected}
+              >
                 <Activity className="h-3 w-3 mr-1" />
                 Performance Report
               </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -12,9 +13,138 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Settings, User, Bell, Shield, Key, Globe } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Settings, User, Bell, Shield, Key, Globe, Wifi, WifiOff, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+
+interface GuardianSettings {
+  guardianId: string;
+  jurisdiction: string;
+  organization: string;
+  contactEmail: string;
+  description: string;
+  twoFactorEnabled: boolean;
+  sessionTimeout: string;
+  emailAlerts: boolean;
+  votingReminders: boolean;
+  systemUpdates: boolean;
+  performanceReports: boolean;
+  timeZone: string;
+  language: string;
+  currency: string;
+}
 
 export default function SettingsPage() {
+  const [settings, setSettings] = useState<GuardianSettings>({
+    guardianId: "GRD-EU-001",
+    jurisdiction: "eu",
+    organization: "European Central Bank",
+    contactEmail: "guardian@ecb.europa.eu",
+    description: "Primary guardian for EU regulatory compliance and cross-border transaction monitoring.",
+    twoFactorEnabled: true,
+    sessionTimeout: "30",
+    emailAlerts: true,
+    votingReminders: true,
+    systemUpdates: false,
+    performanceReports: true,
+    timeZone: "europe/brussels",
+    language: "en",
+    currency: "eur"
+  });
+  const [isConnected, setIsConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/guardians/settings");
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(prev => ({ ...prev, ...data }));
+        setIsConnected(true);
+      } else {
+        setIsConnected(false);
+      }
+    } catch (error) {
+      console.error("Failed to fetch settings:", error);
+      setIsConnected(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveSettings = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/guardians/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(settings)
+      });
+      
+      if (response.ok) {
+        toast.success("Settings saved successfully");
+      } else {
+        toast.error("Failed to save settings");
+      }
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+      toast.error("Failed to connect to backend");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const resetSettings = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/guardians/settings/reset", {
+        method: "POST"
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(prev => ({ ...prev, ...data }));
+        toast.success("Settings reset to defaults");
+      } else {
+        toast.error("Failed to reset settings");
+      }
+    } catch (error) {
+      console.error("Failed to reset settings:", error);
+      toast.error("Failed to connect to backend");
+    }
+  };
+
+  const regenerateApiKey = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/guardians/api-key/regenerate", {
+        method: "POST"
+      });
+      
+      if (response.ok) {
+        toast.success("API key regenerated successfully");
+      } else {
+        toast.error("Failed to regenerate API key");
+      }
+    } catch (error) {
+      console.error("Failed to regenerate API key:", error);
+      toast.error("Failed to connect to backend");
+    }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+    const interval = setInterval(fetchSettings, 60000); // Refresh every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRefresh = () => {
+    setLoading(true);
+    fetchSettings();
+    toast.success("Settings refreshed");
+  };
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -47,7 +177,35 @@ export default function SettingsPage() {
                 Manage your guardian profile and system preferences
               </p>
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+              <Badge variant={isConnected ? "default" : "destructive"} className="text-xs">
+                {isConnected ? (
+                  <><Wifi className="h-3 w-3 mr-1" /> Connected</>
+                ) : (
+                  <><WifiOff className="h-3 w-3 mr-1" /> Offline</>
+                )}
+              </Badge>
+            </div>
           </div>
+
+          {!isConnected && (
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-yellow-800">
+                  <WifiOff className="h-5 w-5" />
+                  <p>Backend services are not available. Changes will not be saved.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Profile Settings */}
@@ -68,11 +226,14 @@ export default function SettingsPage() {
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="guardian-id">Guardian ID</Label>
-                      <Input id="guardian-id" value="GRD-EU-001" disabled />
+                      <Input id="guardian-id" value={settings.guardianId} disabled />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="jurisdiction">Jurisdiction</Label>
-                      <Select defaultValue="eu">
+                      <Select 
+                        value={settings.jurisdiction} 
+                        onValueChange={(value) => setSettings(prev => ({ ...prev, jurisdiction: value }))}
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -88,12 +249,21 @@ export default function SettingsPage() {
                   
                   <div className="space-y-2">
                     <Label htmlFor="organization">Organization</Label>
-                    <Input id="organization" defaultValue="European Central Bank" />
+                    <Input 
+                      id="organization" 
+                      value={settings.organization}
+                      onChange={(e) => setSettings(prev => ({ ...prev, organization: e.target.value }))}
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="contact-email">Contact Email</Label>
-                    <Input id="contact-email" type="email" defaultValue="guardian@ecb.europa.eu" />
+                    <Input 
+                      id="contact-email" 
+                      type="email" 
+                      value={settings.contactEmail}
+                      onChange={(e) => setSettings(prev => ({ ...prev, contactEmail: e.target.value }))}
+                    />
                   </div>
                   
                   <div className="space-y-2">
@@ -101,7 +271,8 @@ export default function SettingsPage() {
                     <Textarea 
                       id="description" 
                       placeholder="Brief description of your role and responsibilities..."
-                      defaultValue="Primary guardian for EU regulatory compliance and cross-border transaction monitoring."
+                      value={settings.description}
+                      onChange={(e) => setSettings(prev => ({ ...prev, description: e.target.value }))}
                     />
                   </div>
                 </CardContent>
@@ -123,7 +294,10 @@ export default function SettingsPage() {
                         Require 2FA for all guardian operations
                       </p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch 
+                      checked={settings.twoFactorEnabled}
+                      onCheckedChange={(checked) => setSettings(prev => ({ ...prev, twoFactorEnabled: checked }))}
+                    />
                   </div>
                   
                   <div className="flex items-center justify-between">

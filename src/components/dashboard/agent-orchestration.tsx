@@ -20,9 +20,14 @@ import {
   Clock,
   Cpu,
   MemoryStick,
-  Network
+  Network,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { ADKAgent, WorkflowExecution } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface AgentCardProps {
   agent: ADKAgent;
@@ -228,16 +233,36 @@ function WorkflowExecutionList({ workflows }: { workflows: WorkflowExecution[] }
   );
 }
 
-function AgentPerformanceChart() {
-  // Mock performance data for the chart
-  const performanceData = [
-    { name: "TransactionMonitor", performance: 95, fill: "#3b82f6" },
-    { name: "RiskAssessment", performance: 88, fill: "#10b981" },
-    { name: "GuardianCouncil", performance: 97, fill: "#8b5cf6" },
-    { name: "PrivacyRevoker", performance: 92, fill: "#f59e0b" },
-    { name: "MonitoringConsensus", performance: 74, fill: "#ef4444" },
-    { name: "ComplianceAuditor", performance: 85, fill: "#06b6d4" }
-  ];
+function AgentPerformanceChart({ agents }: { agents: ADKAgent[] }) {
+  // Create performance data from actual agents
+  const performanceData = agents.map(agent => ({
+    name: agent.name.replace(/Agent$/, '').slice(0, 15),
+    performance: Math.round(agent.performanceScore * 100),
+    fill: getAgentColor(agent.type)
+  }));
+
+  function getAgentColor(type: string) {
+    const colors: Record<string, string> = {
+      TransactionMonitor: "#3b82f6",
+      RiskAssessment: "#10b981",
+      GuardianCouncil: "#8b5cf6",
+      PrivacyRevoker: "#f59e0b",
+      MonitoringConsensus: "#ef4444",
+      ComplianceAuditor: "#06b6d4"
+    };
+    return colors[type] || "#6b7280";
+  }
+
+  if (agents.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-48 text-muted-foreground">
+        <div className="text-center">
+          <Bot className="h-8 w-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">No agent data available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-48 w-full">
@@ -278,122 +303,54 @@ function AgentPerformanceChart() {
 }
 
 export function AgentOrchestrationPanel() {
-  const { agents, workflows, agentsLoading, workflowsLoading, restartAgent, triggerWorkflow } = useAgents();
+  const { agents, workflows, agentsLoading, workflowsLoading, restartAgent, triggerWorkflow, error } = useAgents();
+  const [isConnected, setIsConnected] = useState(false);
 
-  // Mock data for demonstration
-  const mockAgents: ADKAgent[] = [
-    {
-      id: "agent-1",
-      name: "TransactionMonitor",
-      type: "TransactionMonitor",
-      status: "healthy",
-      health: { cpu: 45, memory: 32, responseTime: 120, errorRate: 0.1 },
-      lastHeartbeat: new Date().toISOString(),
-      performanceScore: 0.95,
-      reputationWeight: 1.0,
-      executionStats: {
-        totalExecutions: 1247,
-        successRate: 99.4,
-        averageExecutionTime: 450,
-        errorCount: 7
-      }
-    },
-    {
-      id: "agent-2",
-      name: "RiskAssessment",
-      type: "RiskAssessment",
-      status: "healthy",
-      health: { cpu: 67, memory: 78, responseTime: 1200, errorRate: 0.3 },
-      lastHeartbeat: new Date().toISOString(),
-      performanceScore: 0.88,
-      reputationWeight: 0.832,
-      executionStats: {
-        totalExecutions: 1247,
-        successRate: 98.8,
-        averageExecutionTime: 1200,
-        errorCount: 15
-      },
-      currentWorkflow: "High-risk transaction analysis"
-    },
-    {
-      id: "agent-3",
-      name: "GuardianCouncil",
-      type: "GuardianCouncil",
-      status: "healthy",
-      health: { cpu: 23, memory: 45, responseTime: 1400, errorRate: 0.1 },
-      lastHeartbeat: new Date().toISOString(),
-      performanceScore: 0.97,
-      reputationWeight: 1.0,
-      executionStats: {
-        totalExecutions: 89,
-        successRate: 99.7,
-        averageExecutionTime: 1400,
-        errorCount: 0
-      }
-    },
-    {
-      id: "agent-4",
-      name: "PrivacyRevoker",
-      type: "PrivacyRevoker",
-      status: "degraded",
-      health: { cpu: 89, memory: 92, responseTime: 210, errorRate: 1.2 },
-      lastHeartbeat: new Date().toISOString(),
-      performanceScore: 0.74,
-      reputationWeight: 0.924,
-      executionStats: {
-        totalExecutions: 89,
-        successRate: 99.1,
-        averageExecutionTime: 210,
-        errorCount: 1
-      }
+  // Check if we have real data
+  useEffect(() => {
+    setIsConnected(agents.length > 0 || (Array.isArray(agents) && !agentsLoading && !error));
+  }, [agents, agentsLoading, error]);
+
+  // Use actual data from API
+  const agentData = agents || [];
+  const workflowData = workflows || [];
+
+  const handleRestart = async (agentId: string) => {
+    if (!restartAgent) {
+      toast.error("Backend not connected. Please ensure the backend services are running.");
+      return;
     }
-  ];
 
-  const mockWorkflows: WorkflowExecution[] = [
-    {
-      id: "workflow-1",
-      workflowType: "Compliance Analysis",
-      status: "running",
-      startTime: new Date().toISOString(),
-      inputData: {},
-      agents: ["agent-1", "agent-2"],
-      currentStep: "Risk Assessment",
-      progress: 45
-    },
-    {
-      id: "workflow-2",
-      workflowType: "Guardian Consensus",
-      status: "running",
-      startTime: new Date().toISOString(),
-      inputData: {},
-      agents: ["agent-3"],
-      currentStep: "Vote Collection",
-      progress: 78
+    try {
+      await restartAgent(agentId);
+      toast.success(`Agent ${agentId} restart initiated`);
+    } catch (error) {
+      toast.error("Failed to restart agent. Please try again.");
     }
-  ];
-
-  const agentData = agents.length > 0 ? agents : mockAgents;
-  const workflowData = workflows.length > 0 ? workflows : mockWorkflows;
-
-  const handleRestart = (agentId: string) => {
-    console.log(`Restarting agent ${agentId}`);
-    restartAgent(agentId);
   };
 
   const handleConfigure = (agentId: string) => {
-    console.log(`Configuring agent ${agentId}`);
-    // Navigate to agent configuration page
+    toast.info("Agent configuration will be available in the next update.");
   };
 
-  const handleTriggerWorkflow = () => {
-    console.log("Triggering new workflow");
-    triggerWorkflow({
-      type: "compliance_analysis",
-      data: {
-        transactionId: "0x1234567890abcdef",
-        urgency: "high"
-      }
-    });
+  const handleTriggerWorkflow = async () => {
+    if (!triggerWorkflow) {
+      toast.error("Backend not connected. Please ensure the backend services are running.");
+      return;
+    }
+
+    try {
+      await triggerWorkflow({
+        type: "compliance_analysis",
+        data: {
+          transactionId: "0x1234567890abcdef",
+          urgency: "high"
+        }
+      });
+      toast.success("New workflow triggered successfully");
+    } catch (error) {
+      toast.error("Failed to trigger workflow. Please try again.");
+    }
   };
 
   if (agentsLoading) {
@@ -433,10 +390,25 @@ export function AgentOrchestrationPanel() {
               ADK Agent Orchestration
             </CardTitle>
             <div className="flex items-center gap-2">
+              {/* Connection status */}
+              <Badge 
+                variant={isConnected ? "secondary" : "outline"} 
+                className={cn("text-xs", !isConnected && "opacity-60")}
+              >
+                {isConnected ? (
+                  <><Wifi className="h-3 w-3 mr-1" /> Connected</>
+                ) : (
+                  <><WifiOff className="h-3 w-3 mr-1" /> Offline</>
+                )}
+              </Badge>
               <Badge variant="outline" className="text-xs">
                 {healthyAgents}/{totalAgents} Healthy
               </Badge>
-              <Button size="sm" onClick={handleTriggerWorkflow}>
+              <Button 
+                size="sm" 
+                onClick={handleTriggerWorkflow}
+                disabled={!isConnected}
+              >
                 <Play className="h-3 w-3 mr-1" />
                 New Workflow
               </Button>
@@ -445,24 +417,48 @@ export function AgentOrchestrationPanel() {
         </CardHeader>
         
         <CardContent className="space-y-6">
+          {/* Connection warning */}
+          {!isConnected && !agentsLoading && (
+            <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
+              <div className="flex items-start gap-2">
+                <WifiOff className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <p className="font-medium">Agent orchestration service not connected</p>
+                  <p className="text-xs mt-1 opacity-80">
+                    Please ensure the backend services are running on port 8000.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Agent Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {agentData.map((agent) => (
-              <AgentCard
-                key={agent.id}
-                agent={agent}
-                onRestart={handleRestart}
-                onConfigure={handleConfigure}
-              />
-            ))}
-          </div>
+          {agentData.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {agentData.map((agent) => (
+                <AgentCard
+                  key={agent.id}
+                  agent={agent}
+                  onRestart={handleRestart}
+                  onConfigure={handleConfigure}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Bot className="h-12 w-12 mx-auto mb-3 opacity-30" />
+              <p className="text-sm">
+                {isConnected ? "No agents registered" : "Waiting for agent data..."}
+              </p>
+            </div>
+          )}
 
           {/* Performance Chart & Active Workflows */}
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Agent Performance Overview</h4>
               <div className="bg-muted/20 rounded-lg p-4 border border-border/50">
-                <AgentPerformanceChart />
+                <AgentPerformanceChart agents={agentData} />
               </div>
             </div>
             

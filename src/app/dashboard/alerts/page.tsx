@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -9,52 +10,165 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, CheckCircle, Clock, Filter, Search } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Filter, Search, Wifi, WifiOff, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
+interface SystemAlert {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  status: 'active' | 'investigating' | 'acknowledged' | 'resolved';
+  timestamp: string;
+  source: string;
+  category: string;
+}
 
 export default function AlertsPage() {
-  const alerts = [
-    {
-      id: "alert-001",
-      title: "High-Risk Transaction Detected",
-      description: "Transaction pattern matches known money laundering indicators",
-      severity: "critical",
-      status: "active",
-      timestamp: "2024-06-11T10:30:00Z",
-      source: "FraudSentinel",
-      category: "fraud_detection"
-    },
-    {
-      id: "alert-002", 
-      title: "Unusual Cross-Border Activity",
-      description: "Multiple rapid transfers between jurisdictions detected",
-      severity: "high",
-      status: "investigating",
-      timestamp: "2024-06-11T09:45:00Z",
-      source: "ComplianceEngine",
-      category: "compliance"
-    },
-    {
-      id: "alert-003",
-      title: "Agent Performance Degradation",
-      description: "Risk Assessment Agent showing reduced accuracy",
-      severity: "medium",
-      status: "acknowledged",
-      timestamp: "2024-06-11T08:15:00Z",
-      source: "SystemMonitor",
-      category: "system"
-    },
-    {
-      id: "alert-004",
-      title: "Privacy Threshold Exceeded",
-      description: "De-anonymization request volume above normal levels",
-      severity: "low",
-      status: "resolved",
-      timestamp: "2024-06-11T07:30:00Z",
-      source: "PrivacyGuard",
-      category: "privacy"
+  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterSeverity, setFilterSeverity] = useState<string>("all");
+
+  const fetchAlerts = async () => {
+    try {
+      // Fetch from multiple sources
+      const [fraudResponse, agentResponse, complianceResponse] = await Promise.all([
+        fetch("http://localhost:8001/api/v1/fraud/alerts?limit=20"),
+        fetch("http://localhost:8000/api/v1/adk/agents/status"),
+        fetch("http://localhost:8000/api/v1/compliance/updates?days=1")
+      ]);
+
+      const systemAlerts: SystemAlert[] = [];
+
+      // Process fraud alerts
+      if (fraudResponse.ok) {
+        const fraudData = await fraudResponse.json();
+        const fraudAlerts = fraudData.map((alert: any) => ({
+          id: alert.id,
+          title: alert.ruleTriggered || "Fraud Alert",
+          description: alert.reason || "Suspicious activity detected",
+          severity: alert.severity === 'critical' ? 'critical' : 
+                   alert.severity === 'high' ? 'high' : 
+                   alert.severity === 'medium' ? 'medium' : 'low',
+          status: alert.acknowledged ? 'acknowledged' : 'active',
+          timestamp: alert.timestamp,
+          source: "FraudSentinel",
+          category: "fraud_detection"
+        }));
+        systemAlerts.push(...fraudAlerts);
+      }
+
+      // Process agent alerts
+      if (agentResponse.ok) {
+        const agentData = await agentResponse.json();
+        const agentAlerts = agentData
+          .filter((agent: any) => agent.status !== 'healthy' || agent.performanceScore < 0.8)
+          .map((agent: any) => ({
+            id: `agent-${agent.id}`,
+            title: `Agent ${agent.name} ${agent.status === 'unhealthy' ? 'Unhealthy' : 'Performance Issue'}`,
+            description: agent.status === 'unhealthy' ? 
+              'Agent is not responding' : 
+              `Performance score: ${(agent.performanceScore * 100).toFixed(1)}%`,
+            severity: agent.status === 'unhealthy' ? 'critical' : 
+                     agent.performanceScore < 0.7 ? 'high' : 'medium',
+            status: 'active',
+            timestamp: agent.lastHeartbeat,
+            source: "SystemMonitor",
+            category: "system"
+          }));
+        systemAlerts.push(...agentAlerts);
+      }
+
+      // Process compliance alerts
+      if (complianceResponse.ok) {
+        const complianceData = await complianceResponse.json();
+        if (complianceData.updates && complianceData.updates.length > 0) {
+          const complianceAlerts = complianceData.updates.map((update: any) => ({
+            id: `compliance-${update.id || Date.now()}`,
+            title: update.title || "Compliance Update",
+            description: update.description || update.summary || "New compliance requirement",
+            severity: update.urgency === 'high' ? 'high' : 'medium',
+            status: 'active',
+            timestamp: update.published_at || new Date().toISOString(),
+            source: "ComplianceEngine",
+            category: "compliance"
+          }));
+          systemAlerts.push(...complianceAlerts);
+        }
+      }
+
+      // Sort by timestamp (newest first)
+      systemAlerts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      setAlerts(systemAlerts);
+      setIsConnected(true);
+    } catch (error) {
+      console.error("Failed to fetch alerts:", error);
+      setIsConnected(false);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRefresh = () => {
+    setLoading(true);
+    fetchAlerts();
+    toast.success("Alerts refreshed");
+  };
+
+  const handleAcknowledge = async (alertId: string) => {
+    try {
+      // For fraud alerts, use the acknowledge endpoint
+      if (alertId.startsWith('alert_fraud_')) {
+        const response = await fetch(`http://localhost:8001/api/v1/fraud/alerts/${alertId}/acknowledge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+          setAlerts(prev => prev.map(alert => 
+            alert.id === alertId ? { ...alert, status: 'acknowledged' as const } : alert
+          ));
+          toast.success("Alert acknowledged");
+        }
+      } else {
+        // For other alerts, just update locally
+        setAlerts(prev => prev.map(alert => 
+          alert.id === alertId ? { ...alert, status: 'acknowledged' as const } : alert
+        ));
+        toast.success("Alert acknowledged");
+      }
+    } catch (error) {
+      toast.error("Failed to acknowledge alert");
+    }
+  };
+
+  const handleMarkAllRead = () => {
+    setAlerts(prev => prev.map(alert => 
+      alert.status === 'active' ? { ...alert, status: 'acknowledged' as const } : alert
+    ));
+    toast.success("All alerts marked as read");
+  };
+
+  // Filter alerts based on search and severity
+  const filteredAlerts = alerts.filter(alert => {
+    const matchesSearch = searchQuery === "" || 
+      alert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      alert.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesSeverity = filterSeverity === "all" || alert.severity === filterSeverity;
+    
+    return matchesSearch && matchesSeverity;
+  });
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -119,16 +233,33 @@ export default function AlertsPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter
+              <Button variant="outline" size="sm" onClick={handleRefresh}>
+                <RefreshCw className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Mark All Read
               </Button>
+              <Badge variant={isConnected ? "default" : "destructive"} className="text-xs">
+                {isConnected ? (
+                  <><Wifi className="h-3 w-3 mr-1" /> Connected</>
+                ) : (
+                  <><WifiOff className="h-3 w-3 mr-1" /> Offline</>
+                )}
+              </Badge>
             </div>
           </div>
+
+          {!isConnected && (
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-yellow-800">
+                  <WifiOff className="h-5 w-5" />
+                  <p>Backend services are not available. Showing cached alerts.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Search and Filters */}
           <Card>
@@ -139,14 +270,46 @@ export default function AlertsPage() {
                   <Input 
                     placeholder="Search alerts..." 
                     className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">All</Badge>
-                  <Badge variant="destructive">Critical (1)</Badge>
-                  <Badge variant="secondary">High (1)</Badge>
-                  <Badge variant="outline">Medium (1)</Badge>
-                  <Badge variant="outline">Low (1)</Badge>
+                  <Badge 
+                    variant={filterSeverity === "all" ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilterSeverity("all")}
+                  >
+                    All ({alerts.length})
+                  </Badge>
+                  <Badge 
+                    variant={filterSeverity === "critical" ? "destructive" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilterSeverity("critical")}
+                  >
+                    Critical ({alerts.filter(a => a.severity === "critical").length})
+                  </Badge>
+                  <Badge 
+                    variant={filterSeverity === "high" ? "secondary" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilterSeverity("high")}
+                  >
+                    High ({alerts.filter(a => a.severity === "high").length})
+                  </Badge>
+                  <Badge 
+                    variant={filterSeverity === "medium" ? "outline" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilterSeverity("medium")}
+                  >
+                    Medium ({alerts.filter(a => a.severity === "medium").length})
+                  </Badge>
+                  <Badge 
+                    variant={filterSeverity === "low" ? "outline" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilterSeverity("low")}
+                  >
+                    Low ({alerts.filter(a => a.severity === "low").length})
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -154,56 +317,79 @@ export default function AlertsPage() {
 
           {/* Alerts List */}
           <div className="space-y-4">
-            {alerts.map((alert, index) => (
-              <motion.div
-                key={alert.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Alert className={`border ${getSeverityColor(alert.severity)}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      {getSeverityIcon(alert.severity)}
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-medium">{alert.title}</h4>
-                          <Badge className={getStatusColor(alert.status)}>
-                            {alert.status}
-                          </Badge>
-                        </div>
-                        <AlertDescription className="text-xs">
-                          {alert.description}
-                        </AlertDescription>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{new Date(alert.timestamp).toLocaleString()}</span>
+            {loading ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center text-muted-foreground">Loading alerts...</div>
+                </CardContent>
+              </Card>
+            ) : filteredAlerts.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center text-muted-foreground">
+                    {searchQuery || filterSeverity !== "all" 
+                      ? "No alerts match your filters" 
+                      : "No active alerts"}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredAlerts.map((alert, index) => (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Alert className={`border ${getSeverityColor(alert.severity)}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        {getSeverityIcon(alert.severity)}
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-medium">{alert.title}</h4>
+                            <Badge className={getStatusColor(alert.status)}>
+                              {alert.status}
+                            </Badge>
                           </div>
-                          <span>•</span>
-                          <span>{alert.source}</span>
-                          <span>•</span>
-                          <Badge variant="outline" className="text-xs">
-                            {alert.category}
-                          </Badge>
+                          <AlertDescription className="text-xs">
+                            {alert.description}
+                          </AlertDescription>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{new Date(alert.timestamp).toLocaleString()}</span>
+                            </div>
+                            <span>•</span>
+                            <span>{alert.source}</span>
+                            <span>•</span>
+                            <Badge variant="outline" className="text-xs">
+                              {alert.category}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {alert.severity}
+                        </Badge>
+                        {alert.status === "active" && (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs h-7"
+                            onClick={() => handleAcknowledge(alert.id)}
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Acknowledge
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {alert.severity}
-                      </Badge>
-                      {alert.status === "active" && (
-                        <Button size="sm" variant="outline" className="text-xs h-7">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Acknowledge
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </Alert>
-              </motion.div>
-            ))}
+                  </Alert>
+                </motion.div>
+              ))
+            )}
           </div>
 
           {/* Summary Stats */}
@@ -244,4 +430,4 @@ export default function AlertsPage() {
       </SidebarInset>
     </SidebarProvider>
   );
-} 
+}
