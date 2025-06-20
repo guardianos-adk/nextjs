@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
       setMetrics(analyticsMetrics);
 
       // Process compliance metrics by jurisdiction
-      let jurisdictionMetrics: ComplianceMetric[] = [];
+      const jurisdictionMetrics: ComplianceMetric[] = [];
       if (votingHistoryResponse.ok && guardianResponse.ok) {
         const votingData = await votingHistoryResponse.json();
         const guardianData = await guardianResponse.json();

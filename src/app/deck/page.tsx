@@ -810,18 +810,18 @@ function ImpactSlide() {
             className="space-y-8"
           >
             <div className="text-center p-6 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl border border-emerald-300">
-              <div className="text-4xl font-bold text-emerald-700 mb-2">65%</div>
-              <div className="text-emerald-600">Reduction in compliance processing time</div>
+              <div className="text-4xl font-bold text-emerald-700 mb-2">3/5</div>
+              <div className="text-emerald-600">Guardian consensus threshold</div>
             </div>
             
             <div className="text-center p-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl border border-blue-300">
-              <div className="text-4xl font-bold text-blue-700 mb-2">94%</div>
-              <div className="text-blue-600">Accuracy in fraud detection</div>
+              <div className="text-4xl font-bold text-blue-700 mb-2">ADK</div>
+              <div className="text-blue-600">Google AI agents for monitoring</div>
             </div>
             
             <div className="text-center p-6 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl border border-purple-300">
-              <div className="text-4xl font-bold text-purple-700 mb-2">$2.3M</div>
-              <div className="text-purple-600">Average annual compliance cost savings</div>
+              <div className="text-4xl font-bold text-purple-700 mb-2">5</div>
+              <div className="text-purple-600">Regulatory jurisdictions supported</div>
             </div>
           </motion.div>
 

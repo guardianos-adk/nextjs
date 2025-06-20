@@ -40,3 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 MOCK_DATA_ANALYSIS_REPORT.md
+landing-page-once-there-are-users/
