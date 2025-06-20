@@ -230,7 +230,12 @@ function VotingColumn({ title, requests, headingColor, onVote, onViewDetails }: 
   );
 }
 
-export function VotingStatusBoard() {
+interface VotingStatusBoardProps {
+  onVote?: (requestId: number, approve: boolean) => void;
+  isConnected?: boolean;
+}
+
+export function VotingStatusBoard({ onVote: onVoteContract, isConnected: isWalletConnected }: VotingStatusBoardProps = {}) {
   const { activeRequests, requestsLoading, submitVote } = useVoting();
   const [isConnected, setIsConnected] = useState(false);
   

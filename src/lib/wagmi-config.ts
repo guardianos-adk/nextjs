@@ -1,11 +1,11 @@
 import { http, createConfig } from 'wagmi'
-import { mainnet, sepolia, polygon, arbitrum, optimism } from 'wagmi/chains'
+import { mainnet, sepolia, polygon, arbitrum, optimism, localhost } from 'wagmi/chains'
 import { injected, metaMask, safe, walletConnect } from 'wagmi/connectors'
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '0a6a0b2f0c4b4e8e9f0b1c2d3e4f5a6b'
 
 export const config = createConfig({
-  chains: [mainnet, sepolia, polygon, arbitrum, optimism],
+  chains: [localhost, mainnet, sepolia, polygon, arbitrum, optimism],
   connectors: [
     injected(),
     metaMask(),
@@ -21,6 +21,7 @@ export const config = createConfig({
     safe(),
   ],
   transports: {
+    [localhost.id]: http('http://127.0.0.1:8545'),
     [mainnet.id]: http(process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`),
     [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`),
     [polygon.id]: http(process.env.NEXT_PUBLIC_POLYGON_RPC_URL || `https://polygon-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`),
