@@ -14,7 +14,10 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { WifiOff, AlertTriangle, CheckCircle, Minus } from "lucide-react";
+import { WifiOff, AlertTriangle, CheckCircle, Minus, HelpCircle } from "lucide-react";
+import { TutorialOverlay } from "@/components/tutorial-overlay";
+import { useTutorial } from "@/hooks/use-tutorial";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
   const { 
@@ -24,6 +27,8 @@ export default function DashboardPage() {
     sentinel, 
     agents 
   } = useDashboardWebSocket();
+
+  const { isTutorialOpen, startTutorial, closeTutorial } = useTutorial();
 
   // Check if any connection has issues (excluding disabled state)
   const hasConnectionIssues = [voting.connectionStatus, sentinel.connectionStatus, agents.connectionStatus]
@@ -83,7 +88,7 @@ export default function DashboardPage() {
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
+            <SidebarTrigger className="-ml-1" data-testid="sidebar-trigger" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
@@ -121,6 +126,17 @@ export default function DashboardPage() {
             <Badge variant={getOverallBadgeVariant()} className="text-xs">
               {getOverallStatusText()}
             </Badge>
+            
+            {/* Help Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={startTutorial}
+              className="h-8 w-8"
+              title="Start tutorial"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
           </div>
         </header>
         
@@ -201,6 +217,9 @@ export default function DashboardPage() {
           )}
         </div>
       </SidebarInset>
+      
+      {/* Tutorial Overlay */}
+      <TutorialOverlay isOpen={isTutorialOpen} onClose={closeTutorial} />
     </SidebarProvider>
   );
 }

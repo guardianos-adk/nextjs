@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Settings, User, Bell, Shield, Key, Globe, Wifi, WifiOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { TutorialSettings } from "@/components/tutorial-settings";
 
 interface GuardianSettings {
   guardianId: string;
@@ -450,6 +451,9 @@ export default function SettingsPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Tutorial Settings */}
+              <TutorialSettings />
 
               <div className="flex flex-col gap-2">
                 <Button>

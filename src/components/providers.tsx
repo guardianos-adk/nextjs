@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { config } from "@/lib/wagmi-config";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { TutorialProvider } from "@/contexts/tutorial-context";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -37,13 +38,15 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        {mounted ? (
-          <WagmiProvider config={config}>
-            {children}
-          </WagmiProvider>
-        ) : (
-          children
-        )}
+        <TutorialProvider>
+          {mounted ? (
+            <WagmiProvider config={config}>
+              {children}
+            </WagmiProvider>
+          ) : (
+            children
+          )}
+        </TutorialProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

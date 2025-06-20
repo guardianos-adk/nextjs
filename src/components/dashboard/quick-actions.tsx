@@ -328,7 +328,7 @@ export function QuickActions() {
   };
 
   return (
-    <Card className="h-full flex flex-col bg-gradient-to-br from-card/50 to-card border-border/50 backdrop-blur-sm">
+    <Card className="h-full flex flex-col bg-gradient-to-br from-card/50 to-card border-border/50 backdrop-blur-sm" data-testid="quick-actions">
       {/* Header */}
       <div className="p-6 pb-4 border-b border-border/50">
         <div className="flex items-center gap-2">

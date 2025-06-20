@@ -22,6 +22,7 @@ import {
   Zap,
   Search,
   Database,
+  HelpCircle,
 } from "lucide-react";
 
 import { SearchForm } from "@/components/search-form";
@@ -40,7 +41,10 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useGuardianAuth } from "@/hooks/use-guardian";
+import { useTutorial } from "@/hooks/use-tutorial";
+import { toast } from "sonner";
 
 // Guardian navigation data
 const navigationData = {
@@ -217,6 +221,16 @@ function getBadgeCount(badge: string) {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { guardian } = useGuardianAuth();
+  const { startTutorial } = useTutorial();
+
+  const handleStartTutorial = () => {
+    // If not on dashboard, the tutorial will redirect there
+    if (pathname !== "/dashboard") {
+      window.location.href = "/dashboard";
+    }
+    startTutorial();
+    toast.info("Tutorial started! Follow the interactive guide.");
+  };
 
   return (
     <Sidebar {...props}>
@@ -290,6 +304,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       
       <SidebarFooter className="border-t border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleStartTutorial}
+              className="cursor-pointer"
+            >
+              <HelpCircle className="h-4 w-4" />
+              <span>Start Tutorial</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-sidebar-foreground/70">
           <Shield className="h-3 w-3" />
           <span>GuardianOS v1.0.0</span>
