@@ -15,7 +15,6 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { WifiOff, AlertTriangle, CheckCircle, Minus, HelpCircle } from "lucide-react";
-import { TutorialOverlay } from "@/components/tutorial-overlay";
 import { useTutorial } from "@/hooks/use-tutorial";
 import { Button } from "@/components/ui/button";
 
@@ -28,7 +27,7 @@ export default function DashboardPage() {
     agents 
   } = useDashboardWebSocket();
 
-  const { isTutorialOpen, startTutorial, closeTutorial } = useTutorial();
+  const { startTutorial } = useTutorial();
 
   // Check if any connection has issues (excluding disabled state)
   const hasConnectionIssues = [voting.connectionStatus, sentinel.connectionStatus, agents.connectionStatus]
@@ -217,9 +216,6 @@ export default function DashboardPage() {
           )}
         </div>
       </SidebarInset>
-      
-      {/* Tutorial Overlay */}
-      <TutorialOverlay isOpen={isTutorialOpen} onClose={closeTutorial} />
     </SidebarProvider>
   );
 }

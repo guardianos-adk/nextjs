@@ -22,18 +22,28 @@ interface TutorialStep {
 const tutorialSteps: TutorialStep[] = [
   {
     id: "welcome",
-    title: "Welcome to GuardianOS Dashboard!",
-    content: "This tutorial will guide you through the main features of the compliance orchestration platform. Let's explore how to monitor and manage blockchain compliance.",
+    title: "Welcome to GuardianOS!",
+    content: "This tutorial will guide you through the entire compliance orchestration platform. We'll explore the dashboard and then walk through each section in the sidebar.",
     target: "body",
     position: "top",
   },
   {
     id: "sidebar",
     title: "Navigation Sidebar",
-    content: "Use the sidebar to navigate between different sections. You can collapse it for more screen space.",
+    content: "The sidebar is your main navigation tool. It's organized into sections: Compliance Operations, Agent Orchestration, Analytics & Reports, and Documentation. You can collapse it for more space.",
     target: "[data-testid='sidebar-trigger']",
     position: "right",
     action: "Click to toggle sidebar",
+    highlight: true,
+  },
+  
+  // Dashboard Overview
+  {
+    id: "dashboard-overview",
+    title: "Dashboard Overview",
+    content: "This is your command center. Here you can see all critical information at a glance: voting requests, system health, real-time metrics, and fraud alerts.",
+    target: "a[href='/dashboard']",
+    position: "right",
     highlight: true,
   },
   {
@@ -44,59 +54,191 @@ const tutorialSteps: TutorialStep[] = [
     position: "bottom",
     highlight: true,
   },
+  
+  // Compliance Operations Section
   {
-    id: "quick-actions",
-    title: "Quick Actions",
-    content: "Access frequently used features quickly. Create reports, view analytics, or trigger compliance checks from here.",
-    target: "[data-testid='quick-actions']",
-    position: "bottom",
+    id: "compliance-section",
+    title: "Compliance Operations Section",
+    content: "This section contains all compliance-related features. Let's explore each one to understand their purpose.",
+    target: "a[href='/dashboard/compliance']",
+    position: "right",
     highlight: true,
   },
   {
-    id: "voting-board",
-    title: "Voting Status Board",
-    content: "This is where guardian voting requests appear. Drag and drop cards to vote, or click for details. Active requests require your attention!",
-    target: ".lg\\:col-span-2 > div:first-child",
-    position: "top",
-    action: "Try dragging a voting card",
+    id: "compliance-intelligence",
+    title: "Compliance Intelligence",
+    content: "AI-powered compliance data search and monitoring. Use this to search through regulations, analyze compliance requirements, and monitor regulatory changes across jurisdictions.",
+    target: "a[href='/dashboard/compliance']",
+    position: "right",
+    highlight: true,
+    action: "Search regulations and compliance data",
+  },
+  {
+    id: "active-requests",
+    title: "Active Voting Requests",
+    content: "View and manage all de-anonymization voting requests. You can vote on requests, view evidence, and track consensus progress. Critical requests appear at the top.",
+    target: "a[href='/dashboard/voting']",
+    position: "right",
+    highlight: true,
+    action: "Cast votes on pending requests",
+  },
+  {
+    id: "consensus-tracking",
+    title: "Consensus Tracking",
+    content: "Monitor the guardian consensus process in real-time. See how votes are distributed, track voting patterns, and ensure the 3-of-5 threshold is met for decisions.",
+    target: "a[href='/dashboard/consensus']",
+    position: "right",
     highlight: true,
   },
   {
-    id: "metrics",
-    title: "Real-time Metrics",
-    content: "Monitor live transaction volumes, risk scores, and compliance rates. The charts update automatically as new data arrives.",
-    target: ".lg\\:col-span-2 > div:nth-child(2)",
-    position: "top",
+    id: "evidence-review",
+    title: "Evidence Review",
+    content: "Analyze transaction evidence submitted for de-anonymization requests. Review supporting documents, blockchain data, and risk assessments before making voting decisions.",
+    target: "a[href='/dashboard/evidence']",
+    position: "right",
     highlight: true,
   },
   {
-    id: "fraud-monitor",
-    title: "FraudSentinel Monitor",
-    content: "AI-powered fraud detection alerts appear here. Each alert shows risk level, confidence score, and recommended actions.",
-    target: ".lg\\:col-span-2 > div:nth-child(3)",
-    position: "top",
+    id: "privacy-controls",
+    title: "Privacy Controls",
+    content: "Manage selective disclosure settings. Control what information is revealed during de-anonymization, ensuring only necessary data is exposed while protecting uninvolved parties.",
+    target: "a[href='/dashboard/privacy']",
+    position: "right",
+    highlight: true,
+  },
+  
+  // Agent Orchestration Section
+  {
+    id: "agent-section",
+    title: "Agent Orchestration Section",
+    content: "This section manages the AI agents powered by Google ADK. These agents work together to monitor, assess, and respond to compliance needs.",
+    target: "a[href='/dashboard/agents']",
+    position: "right",
     highlight: true,
   },
   {
-    id: "system-health",
-    title: "System Health",
-    content: "Check the health of all system components: smart contracts, AI agents, and guardian nodes. Green means healthy!",
-    target: ".space-y-6 > div:first-child",
-    position: "left",
+    id: "adk-agents",
+    title: "ADK Agents",
+    content: "Monitor all AI agents: Transaction Monitor, Risk Assessment, Guardian Council, and Privacy Revoker. Check their status, performance metrics, and recent actions.",
+    target: "a[href='/dashboard/agents']",
+    position: "right",
+    highlight: true,
+    action: "View agent performance metrics",
+  },
+  {
+    id: "agent-performance",
+    title: "Agent Performance",
+    content: "Detailed performance analytics for each agent. Track success rates, processing times, and accuracy. Identify bottlenecks and optimize agent configurations.",
+    target: "a[href='/dashboard/performance']",
+    position: "right",
     highlight: true,
   },
   {
-    id: "activity-feed",
-    title: "Activity Feed",
-    content: "See real-time activities from guardians and agents. This helps you stay informed about what's happening in the network.",
-    target: ".space-y-6 > div:nth-child(2)",
-    position: "left",
+    id: "active-alerts",
+    title: "Active Alerts",
+    content: "Real-time alerts from all system components. High-risk transactions, system issues, and compliance violations appear here. Set up custom alert rules and notifications.",
+    target: "a[href='/dashboard/alerts']",
+    position: "right",
     highlight: true,
   },
   {
-    id: "explore",
-    title: "Ready to Explore!",
-    content: "You now know the basics! Try navigating to other pages like Guardian Council or Agent Performance to see more features. The tutorial can be restarted anytime from the help menu.",
+    id: "workflows",
+    title: "Compliance Workflows",
+    content: "Manage automated compliance workflows. Define triggers, actions, and escalation paths. Monitor workflow execution and optimize for efficiency.",
+    target: "a[href='/dashboard/workflows']",
+    position: "right",
+    highlight: true,
+  },
+  
+  // Analytics & Reports Section
+  {
+    id: "analytics-section",
+    title: "Analytics & Reports Section",
+    content: "Data visualization and reporting tools. Generate insights from transaction data, compliance metrics, and system performance.",
+    target: "a[href='/dashboard/analytics']",
+    position: "right",
+    highlight: true,
+  },
+  {
+    id: "guardian-council",
+    title: "Guardian Council",
+    content: "View all guardian members, their jurisdictions, and voting history. Track guardian reputation scores and participation rates. Manage guardian onboarding and permissions.",
+    target: "a[href='/dashboard/guardians']",
+    position: "right",
+    highlight: true,
+  },
+  {
+    id: "fraud-sentinel",
+    title: "FraudSentinel Dashboard",
+    content: "Dedicated fraud monitoring dashboard. View ML model predictions, pattern analysis, and risk heat maps. Configure fraud detection rules and thresholds.",
+    target: "a[href='/dashboard/sentinel']",
+    position: "right",
+    highlight: true,
+  },
+  {
+    id: "analytics-dashboard",
+    title: "System Analytics",
+    content: "Comprehensive analytics for the entire system. Transaction volumes, compliance rates, guardian performance, and cross-jurisdictional insights.",
+    target: "a[href='/dashboard/analytics']",
+    position: "right",
+    highlight: true,
+  },
+  {
+    id: "jurisdiction-mapping",
+    title: "Jurisdiction Mapping",
+    content: "Manage regulatory requirements for each jurisdiction (ECB, DNB, BaFin, FINMA, FCA). Map compliance rules, reporting requirements, and thresholds.",
+    target: "a[href='/dashboard/jurisdictions']",
+    position: "right",
+    highlight: true,
+  },
+  {
+    id: "blockchain-explorer",
+    title: "Blockchain Explorer",
+    content: "Multi-chain transaction explorer integrated with the platform. Track deposits, withdrawals, and privacy pool interactions across supported blockchains.",
+    target: "a[href='/dashboard/blockchain']",
+    position: "right",
+    highlight: true,
+  },
+  
+  // Documentation Section
+  {
+    id: "documentation-section",
+    title: "Documentation Section",
+    content: "Reports, API documentation, and system settings. Everything you need to integrate with external systems and configure the platform.",
+    target: "a[href='/dashboard/reports']",
+    position: "right",
+    highlight: true,
+  },
+  {
+    id: "compliance-reports",
+    title: "Compliance Reports",
+    content: "Generate and download compliance reports. Audit trails, regulatory submissions, and periodic summaries. Schedule automated report generation.",
+    target: "a[href='/dashboard/reports']",
+    position: "right",
+    highlight: true,
+  },
+  {
+    id: "api-documentation",
+    title: "API Documentation",
+    content: "Complete API reference for developers. REST endpoints, WebSocket events, and SDK documentation. Test API calls directly from the interface.",
+    target: "a[href='/dashboard/api-docs']",
+    position: "right",
+    highlight: true,
+  },
+  {
+    id: "system-settings",
+    title: "System Settings",
+    content: "Configure your guardian profile, notification preferences, and system parameters. Manage API keys, two-factor authentication, and timezone settings.",
+    target: "a[href='/dashboard/settings']",
+    position: "top", // Changed to top to avoid overlap with sidebar footer
+    highlight: true,
+  },
+  
+  // Completion
+  {
+    id: "complete",
+    title: "Tutorial Complete! 🎉",
+    content: "You've explored all sections of GuardianOS! Remember, you can restart this tutorial anytime from the sidebar. Now go ahead and start managing blockchain compliance with confidence!",
     target: "body",
     position: "top",
   },
@@ -186,7 +328,7 @@ export function TutorialOverlay({ isOpen, onClose }: TutorialOverlayProps) {
     const position = currentTutorialStep.position || "bottom";
     const margin = 16;
     const tooltipWidth = 400;
-    const tooltipHeight = 200;
+    const tooltipHeight = 250; // Increased for better spacing
 
     let top = 0;
     let left = 0;
@@ -210,9 +352,16 @@ export function TutorialOverlay({ isOpen, onClose }: TutorialOverlayProps) {
         break;
     }
 
-    // Keep tooltip within viewport
-    top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - margin));
+    // Keep tooltip within viewport with better bounds checking
+    const viewportPadding = 80; // Extra padding to ensure buttons are accessible
+    top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - viewportPadding));
     left = Math.max(margin, Math.min(left, window.innerWidth - tooltipWidth - margin));
+    
+    // Special handling for items near the bottom of the sidebar
+    if (targetRect.bottom > window.innerHeight - 300) {
+      // Place tooltip above the item instead
+      top = Math.max(margin, targetRect.top - tooltipHeight - margin);
+    }
 
     return { top: `${top}px`, left: `${left}px` };
   };

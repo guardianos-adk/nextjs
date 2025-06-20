@@ -21,13 +21,13 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     const completed = localStorage.getItem("tutorial-completed") === "true";
     setHasCompletedTutorial(completed);
     
-    // Only auto-open on main dashboard page
-    if (typeof window !== "undefined" && window.location.pathname === "/dashboard") {
+    // Auto-open on any dashboard page for first-time users
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/dashboard")) {
       // Auto-open tutorial for first-time users
       if (!completed) {
         const hasVisitedBefore = localStorage.getItem("has-visited-dashboard") === "true";
-        if (!hasVisitedBefore) {
-          // Delay to let dashboard load first
+        if (!hasVisitedBefore && window.location.pathname === "/dashboard") {
+          // Only auto-open on main dashboard page
           setTimeout(() => {
             setIsTutorialOpen(true);
           }, 1000);
