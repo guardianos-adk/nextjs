@@ -77,6 +77,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ExecutiveSummaryPDF } from "@/components/executive-summary-pdf";
 
 // Floating animation component
 function FloatingIcon({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
@@ -632,6 +633,28 @@ export default function GuidePage() {
                 </motion.div>
               ))}
             </div>
+
+            {/* Executive Summary Download */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+              className="mt-12 text-center"
+            >
+              <Card className="max-w-2xl mx-auto bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-primary/20">
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-center mb-4">
+                    <FileText className="h-12 w-12 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">Executive Summary</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Download a comprehensive PDF overview of GuardianOS, including technical architecture, 
+                    compliance framework, and implementation details.
+                  </p>
+                  <ExecutiveSummaryPDF />
+                </CardContent>
+              </Card>
+            </motion.div>
 
           </TabsContent>
 
@@ -1842,10 +1865,10 @@ export default function GuidePage() {
                       Try the Demo
                     </Button>
                   </Link>
-                  <Button variant="outline" size="lg" className="group">
+                  {/* <Button variant="outline" size="lg" className="group">
                     <Download className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
                     Download Executive Summary
-                  </Button>
+                  </Button> */}
                 </div>
                 
                 <div className="pt-8 border-t">
