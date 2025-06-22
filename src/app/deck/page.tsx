@@ -816,7 +816,7 @@ function ImpactSlide() {
             
             <div className="text-center p-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl border border-blue-300">
               <div className="text-4xl font-bold text-blue-700 mb-2">ADK</div>
-              <div className="text-blue-600">Google AI agents for monitoring</div>
+              <div className="text-blue-600">Agent Development Kit for monitoring</div>
             </div>
             
             <div className="text-center p-6 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl border border-purple-300">

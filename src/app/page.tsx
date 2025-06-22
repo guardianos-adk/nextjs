@@ -115,7 +115,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
             >
               <Shield className="h-4 w-4 mr-2" />
-              <span className="guardian-emphasis">Enterprise Ready</span> • <span className="guardian-emphasis">Regulatory Compliant</span>
+              <span className="guardian-emphasis"></span>  <span className="guardian-emphasis">Regulatory Compliant</span>
             </motion.div>
             
             <h1 className="mb-8">
@@ -168,7 +168,7 @@ export default function LandingPage() {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="guardian-metric-value">ADK</div>
-                <div className="guardian-metric-label">Google AI Agents</div>
+                <div className="guardian-metric-label">Composable</div>
               </motion.div>
               <motion.div 
                 className="guardian-metric-card"
@@ -479,16 +479,7 @@ export default function LandingPage() {
                   <span className="guardian-emphasis">Zero-knowledge proofs</span> enable private transactions while maintaining 
                   the ability for <span className="guardian-emphasis">selective disclosure</span> when legally required.
                 </p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-sm text-primary hover:underline">Learn more →</button>
-                    </TooltipTrigger>
-                    <TooltipContent className="guardian-tooltip max-w-xs">
-                      <p>Using Groth16 SNARKs for efficient on-chain verification</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Link href="/blog/privacy-pools" className="text-sm text-primary hover:underline">Learn more →</Link>
               </div>
 
               <div className="guardian-feature-card">
@@ -500,16 +491,7 @@ export default function LandingPage() {
                   <span className="guardian-emphasis">Google ADK agents</span> monitor transactions in real-time, 
                   detecting <span className="guardian-emphasis">suspicious patterns</span> without accessing private data.
                 </p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-sm text-primary hover:underline">Learn more →</button>
-                    </TooltipTrigger>
-                    <TooltipContent className="guardian-tooltip max-w-xs">
-                      <p>Multi-agent system with specialized detection algorithms</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Link href="/blog/ai-risk-detection" className="text-sm text-primary hover:underline">Learn more →</Link>
               </div>
 
               <div className="guardian-feature-card">
@@ -521,16 +503,7 @@ export default function LandingPage() {
                   <span className="guardian-emphasis">Threshold cryptography</span> ensures no single entity can 
                   compromise privacy. <span className="guardian-emphasis">3-of-5 guardians</span> must approve disclosures.
                 </p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-sm text-primary hover:underline">Learn more →</button>
-                    </TooltipTrigger>
-                    <TooltipContent className="guardian-tooltip max-w-xs">
-                      <p>BLS signatures enable efficient threshold verification</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Link href="/blog/guardian-consensus" className="text-sm text-primary hover:underline">Learn more →</Link>
               </div>
 
               <div className="guardian-feature-card">
@@ -542,16 +515,7 @@ export default function LandingPage() {
                   Support for <span className="guardian-emphasis">ECB, DNB, BaFin, FINMA, and FCA</span> regulations 
                   with <span className="guardian-emphasis">automated reporting</span> for each jurisdiction.
                 </p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-sm text-primary hover:underline">Learn more →</button>
-                    </TooltipTrigger>
-                    <TooltipContent className="guardian-tooltip max-w-xs">
-                      <p>Configurable compliance rules per jurisdiction</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Link href="/blog/multi-jurisdiction" className="text-sm text-primary hover:underline">Learn more →</Link>
               </div>
 
               <div className="guardian-feature-card">
@@ -563,16 +527,7 @@ export default function LandingPage() {
                   <span className="guardian-emphasis">Field-level privacy controls</span> ensure only necessary 
                   information is revealed, protecting <span className="guardian-emphasis">uninvolved parties</span>.
                 </p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-sm text-primary hover:underline">Learn more →</button>
-                    </TooltipTrigger>
-                    <TooltipContent className="guardian-tooltip max-w-xs">
-                      <p>Attribute-based encryption for granular access control</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Link href="/blog/selective-disclosure" className="text-sm text-primary hover:underline">Learn more →</Link>
               </div>
 
               <div className="guardian-feature-card">
@@ -584,16 +539,7 @@ export default function LandingPage() {
                   Every compliance action is <span className="guardian-emphasis">recorded on-chain</span>, providing 
                   <span className="guardian-emphasis">transparent accountability</span> for regulators.
                 </p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-sm text-primary hover:underline">Learn more →</button>
-                    </TooltipTrigger>
-                    <TooltipContent className="guardian-tooltip max-w-xs">
-                      <p>IPFS integration for large document storage</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Link href="/blog/immutable-audit-trail" className="text-sm text-primary hover:underline">Learn more →</Link>
               </div>
             </div>
           </motion.div>
@@ -697,7 +643,7 @@ export default function LandingPage() {
                     </div>
                     <div className="text-center">
                       <div className="text-3xl font-bold text-blue-400 mb-1">ADK</div>
-                      <p className="text-sm text-slate-300">Google AI Agents</p>
+                      <p className="text-sm text-slate-300">Composable</p>
                     </div>
                     <div className="text-center">
                       <div className="text-3xl font-bold text-purple-400 mb-1">ZK</div>
