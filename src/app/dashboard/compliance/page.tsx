@@ -25,6 +25,12 @@ interface SearchResult {
   query: string
   results: any[]
   count: number
+  regulations?: any[]
+  sanctions?: any[]
+  updates?: any[]
+  summary?: {
+    total_results: number
+  }
 }
 
 interface SyncStatus {
@@ -427,7 +433,7 @@ export default function CompliancePage() {
               <CardHeader>
                 <CardTitle>Search Results for "{searchResults.query}"</CardTitle>
                 <CardDescription>
-                  Found {searchResults.summary?.total_results || 0} results across all compliance data
+                  Found {searchResults.summary?.total_results || searchResults.count || 0} results across all compliance data
                 </CardDescription>
               </CardHeader>
               <CardContent>

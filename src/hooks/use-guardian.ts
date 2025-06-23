@@ -210,7 +210,7 @@ export function useAgents() {
   const { data: agents, isLoading: agentsLoading } = useQuery({
     queryKey: ['agents', 'status'],
     queryFn: async () => {
-      const response = await agentApi.getAllStatus();
+      const response = await agentApi.getAllAgentsStatus();
       return response.data || [];
     },
     refetchInterval: 10000, // Refetch every 10 seconds
@@ -304,7 +304,7 @@ export function useSentinel() {
   const { data: systemStatus, isLoading: statusLoading } = useQuery({
     queryKey: ['sentinel', 'status'],
     queryFn: async () => {
-      const response = await sentinelApi.getStatus();
+      const response = await sentinelApi.getSentinelStatus();
       return response.data;
     },
     refetchInterval: 30000,
@@ -348,7 +348,7 @@ export function useDashboard() {
   const { data: overview, isLoading: overviewLoading } = useQuery({
     queryKey: ['dashboard', 'overview'],
     queryFn: async () => {
-      const response = await dashboardApi.getOverview();
+      const response = await dashboardApi.getDashboardOverview();
       return response.data;
     },
     refetchInterval: 30000,

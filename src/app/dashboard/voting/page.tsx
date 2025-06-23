@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { VotingStatusBoard } from "@/components/dashboard/voting-status";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -30,7 +30,7 @@ interface VotingRequest {
   retentionPeriod: string;
 }
 
-export default function VotingPage() {
+function VotingPageContent() {
   const searchParams = useSearchParams();
   const isNewRequest = searchParams.get('action') === 'new';
   const [showNewForm, setShowNewForm] = useState(isNewRequest);
@@ -370,5 +370,13 @@ export default function VotingPage() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+export default function VotingPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VotingPageContent />
+    </Suspense>
   );
 } 

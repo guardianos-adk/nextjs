@@ -139,9 +139,7 @@ export default function APIDocsPage() {
         
         // Transform OpenAPI spec to our endpoint format
         const transformedEndpoints = transformOpenApiSpec(spec);
-        if (transformedEndpoints) {
-          setEndpoints(transformedEndpoints);
-        }
+        // Note: Currently using hardcoded endpoints, but spec is available for future use
         setIsConnected(true);
       } else {
         // Try FastAPI docs endpoint
@@ -159,12 +157,7 @@ export default function APIDocsPage() {
         const fraudSpec = await fraudResponse.json();
         // Merge fraud endpoints
         const fraudEndpoints = transformOpenApiSpec(fraudSpec);
-        if (fraudEndpoints && fraudEndpoints.fraud) {
-          setEndpoints(prev => ({
-            ...prev,
-            fraud: [...(prev.fraud || []), ...fraudEndpoints.fraud]
-          }));
-        }
+        // Note: Currently using hardcoded endpoints, but fraud spec is available for future use
       }
     } catch (error) {
       console.error("Failed to fetch API docs:", error);

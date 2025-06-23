@@ -12,19 +12,19 @@ export function useSeDeFramework() {
   // Read functions
   const { data: totalGuardians } = useReadContract({
     address: contractAddress,
-    abi: contract.abi,
+    abi: contract.abi as any,
     functionName: 'totalGuardians',
   });
 
   const { data: consensusThreshold } = useReadContract({
     address: contractAddress,
-    abi: contract.abi,
+    abi: contract.abi as any,
     functionName: 'consensusThreshold',
   });
 
   const { data: requestCounter } = useReadContract({
     address: contractAddress,
-    abi: contract.abi,
+    abi: contract.abi as any,
     functionName: 'requestCounter',
   });
 
@@ -59,7 +59,7 @@ export function useSeDeFramework() {
     try {
       await submitRequest({
         address: contractAddress,
-        abi: contract.abi,
+        abi: contract.abi as any,
         functionName: 'submitRequest',
         args: [targetAddress, reason, evidenceHash],
       });
@@ -74,7 +74,7 @@ export function useSeDeFramework() {
     try {
       await castVote({
         address: contractAddress,
-        abi: contract.abi,
+        abi: contract.abi as any,
         functionName: 'castVote',
         args: [requestId, approve],
       });
@@ -120,13 +120,13 @@ export function useFraudSentinel() {
 
   const { data: riskThreshold } = useReadContract({
     address: contractAddress,
-    abi: contract.abi,
+    abi: contract.abi as any,
     functionName: 'riskThreshold',
   });
 
   const { data: alertCounter } = useReadContract({
     address: contractAddress,
-    abi: contract.abi,
+    abi: contract.abi as any,
     functionName: 'alertCounter',
   });
 
@@ -143,13 +143,13 @@ export function usePrivacyPool() {
 
   const { data: denominationAmount } = useReadContract({
     address: contractAddress,
-    abi: contract.abi,
+    abi: contract.abi as any,
     functionName: 'denominationAmount',
   });
 
   const { data: commitmentCount } = useReadContract({
     address: contractAddress,
-    abi: contract.abi,
+    abi: contract.abi as any,
     functionName: 'getCommitmentCount',
   });
 
@@ -163,7 +163,7 @@ export function usePrivacyPool() {
     try {
       await deposit({
         address: contractAddress,
-        abi: contract.abi,
+        abi: contract.abi as any,
         functionName: 'deposit',
         args: [commitment],
         value: BigInt(1e18), // 1 ETH

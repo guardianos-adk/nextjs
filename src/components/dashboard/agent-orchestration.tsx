@@ -303,13 +303,13 @@ function AgentPerformanceChart({ agents }: { agents: ADKAgent[] }) {
 }
 
 export function AgentOrchestrationPanel() {
-  const { agents, workflows, agentsLoading, workflowsLoading, restartAgent, triggerWorkflow, error } = useAgents();
+  const { agents, workflows, agentsLoading, workflowsLoading, restartAgent, triggerWorkflow } = useAgents();
   const [isConnected, setIsConnected] = useState(false);
 
   // Check if we have real data
   useEffect(() => {
-    setIsConnected(agents.length > 0 || (Array.isArray(agents) && !agentsLoading && !error));
-  }, [agents, agentsLoading, error]);
+    setIsConnected(agents.length > 0 || (Array.isArray(agents) && !agentsLoading));
+  }, [agents, agentsLoading]);
 
   // Use actual data from API
   const agentData = agents || [];
@@ -373,7 +373,7 @@ export function AgentOrchestrationPanel() {
     );
   }
 
-  const healthyAgents = agentData.filter(a => a.status === "healthy").length;
+  const healthyAgents = agentData.filter((a: any) => a.status === "healthy").length;
   const totalAgents = agentData.length;
 
   return (
@@ -435,7 +435,7 @@ export function AgentOrchestrationPanel() {
           {/* Agent Grid */}
           {agentData.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {agentData.map((agent) => (
+              {agentData.map((agent: any) => (
                 <AgentCard
                   key={agent.id}
                   agent={agent}

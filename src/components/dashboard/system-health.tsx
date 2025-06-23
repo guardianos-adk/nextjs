@@ -111,7 +111,7 @@ function AgentStatusGrid() {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-      {mockAgents.map((agent) => (
+      {mockAgents.map((agent: any) => (
         <motion.div
           key={agent.id}
           initial={{ opacity: 0, scale: 0.8 }}

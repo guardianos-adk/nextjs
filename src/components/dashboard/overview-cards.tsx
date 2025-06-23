@@ -107,8 +107,8 @@ function MetricCard({
 }
 
 export function DashboardOverviewCards() {
-  const { overview, systemHealth, isLoading, error } = useDashboard();
-  const isConnected = !!overview && !error;
+  const { overview, systemHealth, isLoading } = useDashboard();
+  const isConnected = !!overview && !isLoading;
 
   // Use actual data from API, show zeros when loading
   const data = overview || {

@@ -150,7 +150,7 @@ export default function EvidencePage() {
           hash: data.evidence.hash,
           submittedBy: data.evidence.submittedBy,
           timestamp: data.evidence.timestamp,
-          status: data.evidence.status as 'pending' | 'verified' | 'rejected',
+          status: data.evidence.status as 'pending' | 'verified' | 'disputed',
           size: data.evidence.size,
           description: data.evidence.description
         };

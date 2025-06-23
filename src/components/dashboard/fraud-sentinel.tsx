@@ -164,11 +164,11 @@ function TransactionFlowMonitor({ metrics, isConnected }: { metrics: any; isConn
   const currentTime = useCurrentTime();
   
   // Use real metrics if available, otherwise show empty state
-  const flowData = metrics || {
-    totalTransactions: 0,
-    flaggedTransactions: 0,
-    processingRate: 0,
-    riskScore: 0
+  const flowData = {
+    totalTransactions: metrics?.transactionThroughput || 0,
+    flaggedTransactions: metrics?.alertsGenerated || 0,
+    processingRate: metrics?.averageProcessingTime || 0,
+    riskScore: metrics?.fraudDetectionRate ? (metrics.fraudDetectionRate / 20) : 0 // Scale to 0-5
   };
 
   const getRiskColor = (score: number) => {
@@ -204,7 +204,7 @@ function TransactionFlowMonitor({ metrics, isConnected }: { metrics: any; isConn
               {flowData.totalTransactions.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground">
-              +{flowData.processingRate}/min
+              {flowData.processingRate}ms avg
             </div>
           </div>
 
@@ -258,13 +258,13 @@ function TransactionFlowMonitor({ metrics, isConnected }: { metrics: any; isConn
 }
 
 export function FraudSentinelMonitor() {
-  const { alerts, metrics, acknowledgeAlert, isLoading, error } = useSentinel();
+  const { alerts, currentMetrics, acknowledgeAlert, alertsLoading, statusLoading } = useSentinel();
   const [isConnected, setIsConnected] = useState(false);
 
   // Check if we have real data
   useEffect(() => {
-    setIsConnected(!!metrics && !error && !isLoading);
-  }, [metrics, error, isLoading]);
+    setIsConnected(!!currentMetrics && !alertsLoading && !statusLoading);
+  }, [currentMetrics, alertsLoading, statusLoading]);
 
   // Use actual data from API
   const alertData = alerts || [];
@@ -342,7 +342,7 @@ export function FraudSentinelMonitor() {
         
         <CardContent className="space-y-6">
           {/* Connection warning */}
-          {!isConnected && !isLoading && (
+          {!isConnected && !alertsLoading && !statusLoading && (
             <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
               <div className="flex items-start gap-2">
                 <WifiOff className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
@@ -360,49 +360,49 @@ export function FraudSentinelMonitor() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <MetricTile
               title="Transactions Scanned"
-              value={metrics?.transactionsScanned?.toLocaleString() || "0"}
+              value={currentMetrics?.transactionThroughput?.toLocaleString() || "0"}
               change={isConnected ? "+12.3%" : undefined}
               trend="up"
               icon={<Eye className="h-4 w-4 text-blue-500" />}
               color="from-blue-500/10 to-blue-600/10"
-              isLoading={isLoading}
+              isLoading={alertsLoading || statusLoading}
             />
             
             <MetricTile
               title="Fraud Detected"
-              value={metrics?.fraudDetected?.toString() || "0"}
+              value={currentMetrics?.alertsGenerated?.toString() || "0"}
               change={isConnected ? "+8.7%" : undefined}
               trend="up"
               icon={<Target className="h-4 w-4 text-red-500" />}
               color="from-red-500/10 to-red-600/10"
-              isLoading={isLoading}
+              isLoading={alertsLoading || statusLoading}
             />
             
             <MetricTile
-              title="False Positives"
-              value={metrics?.falsePositives?.toString() || "0"}
+              title="Detection Rate"
+              value={`${currentMetrics?.fraudDetectionRate?.toFixed(1) || "0.0"}%`}
               change={isConnected ? "-15.2%" : undefined}
               trend="down"
               icon={<XCircle className="h-4 w-4 text-amber-500" />}
               color="from-amber-500/10 to-amber-600/10"
-              isLoading={isLoading}
+              isLoading={alertsLoading || statusLoading}
             />
             
             <MetricTile
-              title="Accuracy Rate"
-              value={`${metrics?.accuracy?.toFixed(1) || "0.0"}%`}
+              title="Success Rate"
+              value={`${currentMetrics?.consensusSuccessRate?.toFixed(1) || "0.0"}%`}
               change={isConnected ? "+2.1%" : undefined}
               trend="up"
               icon={<CheckCircle className="h-4 w-4 text-emerald-500" />}
               color="from-emerald-500/10 to-emerald-600/10"
-              isLoading={isLoading}
+              isLoading={alertsLoading || statusLoading}
             />
           </div>
 
           {/* Transaction Flow Monitor */}
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-muted-foreground">Real-time Transaction Analysis</h4>
-            <TransactionFlowMonitor metrics={metrics} isConnected={isConnected} />
+            <TransactionFlowMonitor metrics={currentMetrics} isConnected={isConnected} />
           </div>
 
           {/* Recent Alerts */}

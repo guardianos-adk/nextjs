@@ -24,28 +24,28 @@ export const contractAddresses = {
 
 export const contracts = {
   SeDeFramework: {
-    abi: SeDeFrameworkABI,
+    abi: SeDeFrameworkABI.abi || SeDeFrameworkABI,
     addresses: {
       31337: contractAddresses.localhost.SeDeFramework,
       11155111: contractAddresses.sepolia.SeDeFramework,
     }
   },
   FraudSentinel: {
-    abi: FraudSentinelABI,
+    abi: FraudSentinelABI.abi || FraudSentinelABI,
     addresses: {
       31337: contractAddresses.localhost.FraudSentinel,
       11155111: contractAddresses.sepolia.FraudSentinel,
     }
   },
   PrivacyPool: {
-    abi: PrivacyPoolABI,
+    abi: PrivacyPoolABI.abi || PrivacyPoolABI,
     addresses: {
       31337: contractAddresses.localhost.PrivacyPool,
       11155111: contractAddresses.sepolia.PrivacyPool,
     }
   },
   EIP7702Delegate: {
-    abi: EIP7702DelegateABI,
+    abi: EIP7702DelegateABI.abi || EIP7702DelegateABI,
     addresses: {
       31337: contractAddresses.localhost.EIP7702Delegate,
       11155111: contractAddresses.sepolia.EIP7702Delegate,

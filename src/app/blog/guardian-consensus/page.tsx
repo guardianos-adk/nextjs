@@ -71,7 +71,7 @@ export default function GuardianConsensusBlog() {
         </div>
 
         <p>
-          This configuration aligns with research showing that <a href="https://eprint.iacr.org/2022/1437" target="_blank" rel="noopener noreferrer">threshold schemes with t > n/2</a> provide optimal security guarantees while maintaining practical efficiency for real-world deployments.
+          This configuration aligns with research showing that <a href="https://eprint.iacr.org/2022/1437" target="_blank" rel="noopener noreferrer">threshold schemes with t &gt; n/2</a> provide optimal security guarantees while maintaining practical efficiency for real-world deployments.
         </p>
 
         <h2 className="guardian-heading-2">Technical Implementation: Shamir's Secret Sharing</h2>

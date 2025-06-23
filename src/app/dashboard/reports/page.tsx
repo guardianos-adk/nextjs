@@ -759,7 +759,13 @@ export default function ReportsPage() {
                 <Label>Report Period</Label>
                 <DatePickerWithRange 
                   date={reportPeriod}
-                  onDateChange={setReportPeriod}
+                  onDateChange={(date) => {
+                    if (date) {
+                      setReportPeriod({ from: date.from, to: date.to });
+                    } else {
+                      setReportPeriod({ from: undefined, to: undefined });
+                    }
+                  }}
                 />
               </div>
               
