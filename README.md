@@ -139,4 +139,4 @@ docker run -p 3000:3000 guardianos-frontend
 
 ## License
 
-MIT
+Apache License 2.0
