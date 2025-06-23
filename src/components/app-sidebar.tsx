@@ -23,6 +23,7 @@ import {
   Search,
   Database,
   HelpCircle,
+  Brain,
 } from "lucide-react";
 
 import { SearchForm } from "@/components/search-form";
@@ -115,6 +116,19 @@ const navigationData = {
           url: "/dashboard/performance",
           icon: TrendingUp,
           description: "Reputation and performance metrics",
+        },
+        {
+          title: "Tenth Opinion",
+          url: "/dashboard/tenth-opinion",
+          icon: Brain,
+          badge: "advanced",
+          description: "10-agent consensus for high-stakes decisions",
+        },
+        {
+          title: "Tenth Opinion Analytics",
+          url: "/dashboard/tenth-opinion-analytics",
+          icon: BarChart3,
+          description: "Deep analytics for multi-agent decisions",
         },
       ],
     },

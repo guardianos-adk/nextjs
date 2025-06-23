@@ -116,7 +116,11 @@ export interface ConsensusResult {
 export interface ADKAgent {
   id: string;
   name: string;
-  type: 'TransactionMonitor' | 'RiskAssessment' | 'GuardianCouncil' | 'PrivacyRevoker' | 'MonitoringConsensus';
+  type: 'TransactionMonitor' | 'RiskAssessment' | 'GuardianCouncil' | 'PrivacyRevoker' | 'MonitoringConsensus' |
+    // Tenth Opinion Protocol agents
+    'FirstOpinion' | 'SecondOpinion' | 'ThirdOpinion' | 'FourthOpinion' |
+    'FifthOpinion' | 'SixthOpinion' | 'SeventhOpinion' |
+    'EighthOpinion' | 'NinthOpinion' | 'TenthOpinion';
   status: AgentStatus;
   health: AgentHealth;
   lastHeartbeat: string;
@@ -129,9 +133,78 @@ export interface ADKAgent {
     errorCount: number;
   };
   currentWorkflow?: string;
+  // Tenth Opinion specific fields
+  phaseNumber?: number;
+  phaseRole?: string;
 }
 
 export type AgentStatus = 'healthy' | 'degraded' | 'unhealthy' | 'offline';
+
+// Tenth Opinion Protocol Types
+export interface TenthOpinionRequest {
+  transactionId: string;
+  amount: number;
+  riskScore: number;
+  transactionType?: string;
+  jurisdiction?: string;
+  entities?: Array<{
+    id: string;
+    sanctions_hit?: boolean;
+  }>;
+  timestamp?: string;
+}
+
+export interface TenthOpinionDecision {
+  final_decision: 'approve' | 'deny' | 'investigate' | 'escalate';
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  consensus_confidence: number;
+  action_required: string;
+  quality_metrics: {
+    reliability_score: number;
+    objectivity_score: number;
+  };
+  regulatory_concerns?: string[];
+  dissenting_opinions?: string[];
+}
+
+export interface TenthOpinionResponse {
+  success: boolean;
+  protocol: 'tenth_opinion';
+  phases_completed: number;
+  agents_involved: number;
+  decision: TenthOpinionDecision;
+  execution_time: number;
+  audit_trail: {
+    phase: string;
+    agents: string[];
+    duration: number;
+    decisions: any[];
+  }[];
+}
+
+export interface TenthOpinionMetrics {
+  total_evaluations: number;
+  average_execution_time: number;
+  consensus_success_rate: number;
+  quality_scores: {
+    reliability: number;
+    objectivity: number;
+    accuracy: number;
+  };
+  phase_metrics: {
+    phase_name: string;
+    average_duration: number;
+    agent_performance: Record<string, number>;
+  }[];
+}
+
+export interface TenthOpinionStatus {
+  online: boolean;
+  agents_ready: number;
+  last_evaluation: string;
+  current_load: number;
+  error_count: number;
+}
 
 export interface AgentHealth {
   cpu: number;
@@ -236,7 +309,12 @@ export type EventType =
   | 'SYSTEM_HEALTH_CHANGE'
   | 'METRICS_UPDATE'
   // Activity events
-  | 'ACTIVITY_UPDATE';
+  | 'ACTIVITY_UPDATE'
+  // Tenth Opinion events
+  | 'TENTH_OPINION_STARTED'
+  | 'TENTH_OPINION_PHASE_COMPLETED'
+  | 'TENTH_OPINION_COMPLETED'
+  | 'TENTH_OPINION_ERROR';
 
 // API Response Types
 export interface ApiResponse<T> {

@@ -7,7 +7,11 @@ import {
   ConsensusResult,
   ApiResponse,
   PaginatedResponse,
-  VoteFormData
+  VoteFormData,
+  TenthOpinionRequest,
+  TenthOpinionResponse,
+  TenthOpinionStatus,
+  TenthOpinionMetrics
 } from '@/lib/types';
 
 // Real Backend Configuration
@@ -361,6 +365,19 @@ class ApiClient {
   async getRecentActivity(): Promise<ApiResponse<any[]>> {
     return this.get<any[]>('/dashboard/activity');
   }
+
+  // Tenth Opinion Protocol
+  async evaluateTenthOpinion(request: TenthOpinionRequest): Promise<ApiResponse<TenthOpinionResponse>> {
+    return this.post<TenthOpinionResponse>('/adk/tenth-opinion/evaluate', request);
+  }
+
+  async getTenthOpinionStatus(): Promise<ApiResponse<TenthOpinionStatus>> {
+    return this.get<TenthOpinionStatus>('/adk/tenth-opinion/status');
+  }
+
+  async getTenthOpinionMetrics(): Promise<ApiResponse<TenthOpinionMetrics>> {
+    return this.get<TenthOpinionMetrics>('/adk/tenth-opinion/metrics');
+  }
 }
 
 // Singleton instance
@@ -406,6 +423,12 @@ export const dashboardApi = {
   getDashboardOverview: () => apiClient.getDashboardOverview(),
   getSystemHealth: () => apiClient.getSystemHealth(),
   getRecentActivity: () => apiClient.getRecentActivity(),
+};
+
+export const tenthOpinionApi = {
+  evaluate: (request: TenthOpinionRequest) => apiClient.evaluateTenthOpinion(request),
+  getStatus: () => apiClient.getTenthOpinionStatus(),
+  getMetrics: () => apiClient.getTenthOpinionMetrics(),
 };
 
 // WebSocket connection for real-time updates

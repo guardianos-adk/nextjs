@@ -8,6 +8,7 @@ import { FraudSentinelMonitor } from "@/components/dashboard/fraud-sentinel";
 import { GuardianActivityFeed } from "@/components/dashboard/activity-feed";
 import { RealTimeMetrics } from "@/components/dashboard/realtime-metrics";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+import { TenthOpinionWidget } from "@/components/dashboard/tenth-opinion-widget";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -176,6 +177,9 @@ export default function DashboardPage() {
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Left Column - 2/3 width */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Tenth Opinion Protocol - Prominent placement */}
+              <TenthOpinionWidget />
+              
               {/* Voting Status Board */}
               <VotingStatusBoard />
               

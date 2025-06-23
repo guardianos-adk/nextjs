@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Search, AlertTriangle, CheckCircle, Clock, RefreshCw, Database, Shield, Globe, Wifi, WifiOff } from 'lucide-react'
+import { Search, AlertTriangle, CheckCircle, Clock, RefreshCw, Database, Shield, Globe, Wifi, WifiOff, Brain } from 'lucide-react'
 import { toast } from "sonner"
+import { TenthOpinionPanel } from "@/components/tenth-opinion/tenth-opinion-panel"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
@@ -318,6 +319,7 @@ export default function CompliancePage() {
           <TabsTrigger value="regulations">Regulations</TabsTrigger>
           <TabsTrigger value="sanctions">Sanctions</TabsTrigger>
           <TabsTrigger value="updates">Updates</TabsTrigger>
+          <TabsTrigger value="high-risk">High Risk Analysis</TabsTrigger>
           <TabsTrigger value="sync">Sync Status</TabsTrigger>
         </TabsList>
 
@@ -741,6 +743,133 @@ export default function CompliancePage() {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* High Risk Analysis Tab */}
+        <TabsContent value="high-risk" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-purple-600" />
+                High-Risk Transaction Analysis
+              </CardTitle>
+              <CardDescription>
+                Advanced compliance analysis for transactions exceeding €75,000 or with risk scores above 0.7
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Alert className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <div className="ml-2">
+                  <AlertTitle>Tenth Opinion Protocol</AlertTitle>
+                  <AlertDescription>
+                    High-stakes transactions automatically trigger our 10-agent consensus system for comprehensive risk assessment and regulatory compliance verification.
+                  </AlertDescription>
+                </div>
+              </Alert>
+
+              {/* Example high-risk transaction for demonstration */}
+              <div className="space-y-4">
+                <Card className="border-orange-200 bg-orange-50">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Sample High-Risk Transaction</CardTitle>
+                    <CardDescription>Demonstration of Tenth Opinion evaluation</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2 mb-4">
+                      <div>
+                        <p className="text-sm font-medium">Transaction ID</p>
+                        <p className="text-sm text-muted-foreground">tx_demo_12345</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Amount</p>
+                        <p className="text-sm text-muted-foreground">€125,000</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Risk Score</p>
+                        <p className="text-sm text-muted-foreground">0.82 (High)</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Type</p>
+                        <p className="text-sm text-muted-foreground">Cross-border wire transfer</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Tenth Opinion Panel Integration */}
+                <TenthOpinionPanel 
+                  transactionData={{
+                    id: "tx_demo_12345",
+                    amount: 125000,
+                    riskScore: 0.82,
+                    type: "cross-border",
+                    jurisdiction: "CYPRUS",
+                    entities: [{ id: "entity_demo", sanctions_hit: false }]
+                  }}
+                  onDecision={(decision) => {
+                    console.log("Tenth Opinion decision:", decision);
+                    toast.success("Tenth Opinion evaluation completed");
+                  }}
+                />
+
+                {/* Information Cards */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Activation Criteria</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="text-sm space-y-2">
+                        <li className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                          <span>Transactions exceeding €75,000</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                          <span>Risk score above 0.7</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                          <span>Sanctions screening hits</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                          <span>Manual escalation by guardian</span>
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Protocol Phases</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="text-sm space-y-2">
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-purple-600">Phase 1:</span>
+                          <span>Blind independent analysis (4 agents)</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-purple-600">Phase 2:</span>
+                          <span>Informed cross-analysis (3 agents)</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-purple-600">Phase 3:</span>
+                          <span>Quality assurance (2 agents)</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-purple-600">Phase 4:</span>
+                          <span>Final synthesis (1 agent)</span>
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
