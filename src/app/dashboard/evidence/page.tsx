@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -50,7 +51,7 @@ export default function EvidencePage() {
 
   const fetchDeAnonymizationRequests = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/voting/active-requests");
+      const response = await fetch("', getApiUrl('/api/v1/')voting/active-requests");
       if (response.ok) {
         const data = await response.json();
         setRequests(data);
@@ -85,7 +86,7 @@ export default function EvidencePage() {
 
   const fetchGuardians = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/guardians");
+      const response = await fetch("', getApiUrl('/api/v1/')guardians");
       if (response.ok) {
         const data = await response.json();
         setGuardians(data);
@@ -123,7 +124,7 @@ export default function EvidencePage() {
 
     try {
       // Submit evidence to backend
-      const response = await fetch("http://localhost:8000/api/v1/evidence/submit", {
+      const response = await fetch("', getApiUrl('/api/v1/')evidence/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -177,7 +178,7 @@ export default function EvidencePage() {
 
   const handleViewEvidence = async (evidence: Evidence) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/voting/requests/${evidence.requestId}`);
+      const response = await fetch(`', getApiUrl('/api/v1/')voting/requests/${evidence.requestId}`);
       if (response.ok) {
         const data = await response.json();
         setSelectedEvidence({
@@ -194,7 +195,7 @@ export default function EvidencePage() {
     toast.info("Verifying evidence on blockchain...");
     
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/evidence/${evidenceId}/verify`, {
+      const response = await fetch(`', getApiUrl('/api/v1/')evidence/${evidenceId}/verify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

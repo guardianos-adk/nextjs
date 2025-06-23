@@ -13,6 +13,7 @@ import {
   TenthOpinionStatus,
   TenthOpinionMetrics
 } from '@/lib/types';
+import { getWsUrl, API_URLS } from '@/lib/api-urls';
 
 // Real Backend Configuration
 const API_CONFIG = {
@@ -200,16 +201,14 @@ class ApiClient {
     const results = { main: false, fraud: false };
     
     try {
-      const mainUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-      const mainResponse = await this.request(`${mainUrl}/health`);
+      const mainResponse = await this.request(`${API_URLS.MAIN_API}/health`);
       results.main = mainResponse.success;
     } catch (error) {
       console.warn('Main API health check failed:', error);
     }
 
     try {
-      const fraudUrl = process.env.NEXT_PUBLIC_FRAUD_API_URL || 'http://localhost:8001';
-      const fraudResponse = await this.request(`${fraudUrl}/health`);
+      const fraudResponse = await this.request(`${API_URLS.FRAUD_API}/health`);
       results.fraud = fraudResponse.success;
     } catch (error) {
       console.warn('Fraud API health check failed:', error);
@@ -444,9 +443,7 @@ export class GuardianWebSocket {
 
   connect() {
     try {
-      const wsUrl = process.env.NEXT_PUBLIC_FRAUD_API_URL 
-        ? process.env.NEXT_PUBLIC_FRAUD_API_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws/monitoring'
-        : 'ws://localhost:8001/ws/monitoring';
+      const wsUrl = getWsUrl('/ws/monitoring', true); // true for fraud API
       this.ws = new WebSocket(wsUrl);
       
       this.ws.onopen = () => {

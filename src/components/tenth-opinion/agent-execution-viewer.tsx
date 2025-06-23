@@ -28,6 +28,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getWsUrl } from "@/lib/api-urls";
 
 interface AgentMessage {
   id: string;
@@ -141,13 +142,8 @@ export function AgentExecutionViewer({ evaluationId, transactionData }: AgentExe
 
   // WebSocket connection for real-time updates
   useEffect(() => {
-    // Get the base URL from window location or environment variable
-    const apiBaseUrl = typeof window !== 'undefined' 
-      ? (window.location.hostname === 'localhost' 
-        ? 'ws://localhost:8000' 
-        : 'wss://guardianos-api-753766936932.us-central1.run.app')
-      : 'ws://localhost:8000';
-    const ws = new WebSocket(`${apiBaseUrl}/ws/tenth-opinion/${evaluationId}`);
+    const wsUrl = getWsUrl(`/ws/tenth-opinion/${evaluationId}`);
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {

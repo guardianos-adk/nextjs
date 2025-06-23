@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -134,7 +135,7 @@ export default function ReportsPage() {
   const fetchReportsData = async () => {
     try {
       // Fetch compliance stats for metrics
-      const statsResponse = await fetch("http://localhost:8000/api/v1/compliance/stats");
+      const statsResponse = await fetch("', getApiUrl('/api/v1/')compliance/stats");
       if (statsResponse.ok) {
         const stats = await statsResponse.json();
         
@@ -175,7 +176,7 @@ export default function ReportsPage() {
       }
 
       // Fetch recent requests for ad-hoc reports
-      const requestsResponse = await fetch("http://localhost:8000/api/v1/voting/recent-requests?limit=5");
+      const requestsResponse = await fetch("', getApiUrl('/api/v1/')voting/recent-requests?limit=5");
       if (requestsResponse.ok) {
         const requests = await requestsResponse.json();
         
@@ -243,7 +244,7 @@ export default function ReportsPage() {
     }, 500);
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/reports/generate", {
+      const response = await fetch("', getApiUrl('/api/v1/')reports/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -306,7 +307,7 @@ export default function ReportsPage() {
     toast.info(`Downloading report ${reportId}...`);
     
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/reports/${reportId}/download`);
+      const response = await fetch(`', getApiUrl('/api/v1/')reports/${reportId}/download`);
       if (response.ok) {
         // In a real implementation, this would trigger a file download
         toast.success("Report downloaded successfully");

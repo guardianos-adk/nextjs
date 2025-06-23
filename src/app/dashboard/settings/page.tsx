@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -58,7 +59,7 @@ export default function SettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/guardians/settings");
+      const response = await fetch("', getApiUrl('/api/v1/')guardians/settings");
       if (response.ok) {
         const data = await response.json();
         setSettings(prev => ({ ...prev, ...data }));
@@ -77,7 +78,7 @@ export default function SettingsPage() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const response = await fetch("http://localhost:8000/api/v1/guardians/settings", {
+      const response = await fetch("', getApiUrl('/api/v1/')guardians/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
@@ -100,7 +101,7 @@ export default function SettingsPage() {
 
   const resetSettings = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/guardians/settings/reset", {
+      const response = await fetch("', getApiUrl('/api/v1/')guardians/settings/reset", {
         method: "POST"
       });
       
@@ -119,7 +120,7 @@ export default function SettingsPage() {
 
   const regenerateApiKey = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/guardians/api-key/regenerate", {
+      const response = await fetch("', getApiUrl('/api/v1/')guardians/api-key/regenerate", {
         method: "POST"
       });
       

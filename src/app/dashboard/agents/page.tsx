@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -42,7 +43,7 @@ export default function AgentsPage() {
 
   const fetchAgentStatus = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/adk/agents/status");
+      const response = await fetch("', getApiUrl('/api/v1/')adk/agents/status");
       if (response.ok) {
         const data = await response.json();
         setAgents(data);
@@ -66,7 +67,7 @@ export default function AgentsPage() {
 
   const handleRestartAgent = async (agentId: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/adk/agents/${agentId}/restart`, {
+      const response = await fetch(`', getApiUrl('/api/v1/')adk/agents/${agentId}/restart`, {
         method: "POST"
       });
       
@@ -89,7 +90,7 @@ export default function AgentsPage() {
 
     setDeployingAgent(true);
     try {
-      const response = await fetch("http://localhost:8000/api/v1/adk/workflows/trigger", {
+      const response = await fetch("', getApiUrl('/api/v1/')adk/workflows/trigger", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

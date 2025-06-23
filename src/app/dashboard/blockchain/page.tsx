@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -117,7 +118,7 @@ export default function BlockchainPage() {
   const fetchBlockchainData = async () => {
     try {
       // Fetch blockchain transactions
-      const txResponse = await fetch("http://localhost:8000/api/v1/blockchain/transactions?limit=20");
+      const txResponse = await fetch("', getApiUrl('/api/v1/')blockchain/transactions?limit=20");
       if (txResponse.ok) {
         const txData = await txResponse.json();
         
@@ -141,7 +142,7 @@ export default function BlockchainPage() {
       }
       
       // Fetch blockchain stats
-      const statsResponse = await fetch("http://localhost:8000/api/v1/compliance/stats");
+      const statsResponse = await fetch("', getApiUrl('/api/v1/')compliance/stats");
       if (statsResponse.ok) {
         const stats = await statsResponse.json();
         setNetworkStats({
@@ -156,7 +157,7 @@ export default function BlockchainPage() {
       }
       
       // Fetch recent blocks
-      const blocksResponse = await fetch("http://localhost:8000/api/v1/blockchain/blocks?limit=5");
+      const blocksResponse = await fetch("', getApiUrl('/api/v1/')blockchain/blocks?limit=5");
       if (blocksResponse.ok) {
         const blocksData = await blocksResponse.json();
         const formattedBlocks: Block[] = blocksData.blocks.map((block: any) => ({
@@ -204,7 +205,7 @@ export default function BlockchainPage() {
 
   const handleDeployContract = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/contracts/deploy", {
+      const response = await fetch("', getApiUrl('/api/v1/')contracts/deploy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

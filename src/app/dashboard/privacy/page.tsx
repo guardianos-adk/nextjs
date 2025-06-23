@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -54,7 +55,7 @@ export default function PrivacyPage() {
 
   const fetchSeDeStatus = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/sede/framework/status");
+      const response = await fetch("', getApiUrl('/api/v1/')sede/framework/status");
       if (response.ok) {
         const data = await response.json();
         setSedeStatus(data);
@@ -70,7 +71,7 @@ export default function PrivacyPage() {
 
   const fetchUserStatistics = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/sede/user/statistics");
+      const response = await fetch("', getApiUrl('/api/v1/')sede/user/statistics");
       if (response.ok) {
         const data = await response.json();
         setUserStats(data);
@@ -82,7 +83,7 @@ export default function PrivacyPage() {
 
   const fetchActiveRequests = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/voting/active-requests");
+      const response = await fetch("', getApiUrl('/api/v1/')voting/active-requests");
       if (response.ok) {
         const data = await response.json();
         setActiveRequests(data);
@@ -139,7 +140,7 @@ export default function PrivacyPage() {
 
   const handleStartKeyCeremony = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/sede/key-ceremony/start", {
+      const response = await fetch("', getApiUrl('/api/v1/')sede/key-ceremony/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

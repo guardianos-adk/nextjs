@@ -127,7 +127,7 @@ export default function CompliancePage() {
     
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:8000/api/v1/compliance/search', {
+      const response = await fetch(getApiUrl('/compliance/search'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -156,7 +156,7 @@ export default function CompliancePage() {
 
   const handleSanctionsCheck = async (entityName: string) => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/compliance/sanctions/check', {
+      const response = await fetch(getApiUrl('/compliance/sanctions/check'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -184,7 +184,7 @@ export default function CompliancePage() {
 
   const triggerSync = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/compliance/sync/trigger', {
+      const response = await fetch(getApiUrl('/compliance/sync/trigger'), {
         method: 'POST'
       })
       

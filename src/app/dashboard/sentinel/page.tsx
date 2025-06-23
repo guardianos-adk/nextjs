@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -49,7 +50,7 @@ export default function SentinelPage() {
 
   const fetchAlerts = async () => {
     try {
-      const response = await fetch("http://localhost:8001/api/v1/fraud/alerts?limit=50");
+      const response = await fetch("', getApiUrl('/api/v1/', true)fraud/alerts?limit=50");
       if (response.ok) {
         const data = await response.json();
         setAlerts(data);
@@ -65,7 +66,7 @@ export default function SentinelPage() {
 
   const fetchMetrics = async () => {
     try {
-      const response = await fetch("http://localhost:8001/api/v1/metrics/current");
+      const response = await fetch("', getApiUrl('/api/v1/', true)metrics/current");
       if (response.ok) {
         const data = await response.json();
         setMetrics(data);
@@ -79,7 +80,7 @@ export default function SentinelPage() {
 
   const checkConnection = async () => {
     try {
-      const response = await fetch("http://localhost:8001/health");
+      const response = await fetch(getApiUrl('/health', true));
       setIsConnected(response.ok);
     } catch {
       setIsConnected(false);
@@ -138,7 +139,7 @@ export default function SentinelPage() {
 
   const handleAcknowledgeAlert = async (alertId: string) => {
     try {
-      const response = await fetch(`http://localhost:8001/api/v1/fraud/alerts/${alertId}/acknowledge`, {
+      const response = await fetch(`', getApiUrl('/api/v1/', true)fraud/alerts/${alertId}/acknowledge`, {
         method: "POST",
       });
       

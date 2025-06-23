@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -44,7 +45,7 @@ export default function WorkflowsPage() {
 
   const fetchWorkflows = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/adk/workflows/active");
+      const response = await fetch("', getApiUrl('/api/v1/')adk/workflows/active");
       if (response.ok) {
         const data = await response.json();
         setWorkflows(data);
@@ -91,7 +92,7 @@ export default function WorkflowsPage() {
         }
       }
 
-      const response = await fetch("http://localhost:8000/api/v1/adk/workflows/trigger", {
+      const response = await fetch("', getApiUrl('/api/v1/')adk/workflows/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

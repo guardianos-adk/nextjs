@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -132,7 +133,7 @@ export default function APIDocsPage() {
   const fetchApiDocs = async () => {
     try {
       // Try to fetch OpenAPI spec from main API
-      const response = await fetch("http://localhost:8000/api/openapi.json");
+      const response = await fetch(getApiUrl('/api/openapi.json'));
       if (response.ok) {
         const spec = await response.json();
         setOpenApiSpec(spec);
@@ -143,7 +144,7 @@ export default function APIDocsPage() {
         setIsConnected(true);
       } else {
         // Try FastAPI docs endpoint
-        const docsResponse = await fetch("http://localhost:8000/api/docs");
+        const docsResponse = await fetch(getApiUrl('/api/docs'));
         if (docsResponse.ok) {
           setIsConnected(true);
         } else {
@@ -152,7 +153,7 @@ export default function APIDocsPage() {
       }
       
       // Also check fraud monitoring API
-      const fraudResponse = await fetch("http://localhost:8001/openapi.json");
+      const fraudResponse = await fetch(getApiUrl('/openapi.json', true));
       if (fraudResponse.ok) {
         const fraudSpec = await fraudResponse.json();
         // Merge fraud endpoints
@@ -239,7 +240,7 @@ export default function APIDocsPage() {
     
     try {
       // Build URL with path parameters
-      let url = `http://localhost:8000${selectedEndpoint.path}`;
+      let url = `', getApiUrl('')${selectedEndpoint.path}`;
       const pathParams = selectedEndpoint.params?.filter(p => selectedEndpoint.path.includes(`{${p.name}}`)) || [];
       
       pathParams.forEach(param => {
@@ -337,7 +338,7 @@ export default function APIDocsPage() {
               <Button variant="outline" size="sm" onClick={handleRefresh}>
                 <RefreshCw className="h-4 w-4" />
               </Button>
-              <Button variant="outline" onClick={() => window.open('http://localhost:8000/api/docs', '_blank')}>
+              <Button variant="outline" onClick={() => window.open(getApiUrl('/api/docs'), '_blank')}>
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Interactive Docs
               </Button>
@@ -375,8 +376,8 @@ export default function APIDocsPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <code className="text-sm">http://localhost:8000</code>
-                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => copyToClipboard('http://localhost:8000')}>
+                  <code className="text-sm">', getApiUrl('')</code>
+                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => copyToClipboard('', getApiUrl('')')}>
                     <Copy className="h-3 w-3" />
                   </Button>
                 </div>
@@ -390,8 +391,8 @@ export default function APIDocsPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <code className="text-sm">http://localhost:8001</code>
-                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => copyToClipboard('http://localhost:8001')}>
+                  <code className="text-sm">', getApiUrl('', true)</code>
+                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => copyToClipboard('', getApiUrl('', true)')}>
                     <Copy className="h-3 w-3" />
                   </Button>
                 </div>
@@ -563,7 +564,7 @@ export default function APIDocsPage() {
                 <h4 className="text-sm font-medium mb-2">1. Authentication</h4>
                 <div className="p-3 rounded bg-muted">
                   <code className="text-sm">
-                    curl -H "Authorization: Bearer YOUR_API_KEY" http://localhost:8000/api/v1/adk/agents/status
+                    curl -H "Authorization: Bearer YOUR_API_KEY" ', getApiUrl('/api/v1/')adk/agents/status
                   </code>
                 </div>
               </div>
@@ -640,7 +641,7 @@ export default function APIDocsPage() {
                   <Button 
                     variant="outline" 
                     className="w-full justify-start"
-                    onClick={() => window.open('http://localhost:8000/api/docs', '_blank')}
+                    onClick={() => window.open(getApiUrl('/api/docs'), '_blank')}
                   >
                     <Book className="h-4 w-4 mr-2" />
                     FastAPI Interactive Docs
@@ -648,7 +649,7 @@ export default function APIDocsPage() {
                   <Button 
                     variant="outline" 
                     className="w-full justify-start"
-                    onClick={() => window.open('http://localhost:8000/api/redoc', '_blank')}
+                    onClick={() => window.open(getApiUrl('/api/redoc'), '_blank')}
                   >
                     <Book className="h-4 w-4 mr-2" />
                     ReDoc Documentation
@@ -803,7 +804,7 @@ function generatePostmanCollection() {
                 }
               ],
               url: {
-                raw: "http://localhost:8000/api/v1/adk/agents/status",
+                raw: "', getApiUrl('/api/v1/')adk/agents/status",
                 protocol: "http",
                 host: ["localhost"],
                 port: "8000",
@@ -827,7 +828,7 @@ function generatePostmanCollection() {
                 }
               ],
               url: {
-                raw: "http://localhost:8001/api/v1/fraud/alerts?limit=10",
+                raw: getApiUrl('/api/v1/fraud/alerts?limit=10', true),
                 protocol: "http",
                 host: ["localhost"],
                 port: "8001",

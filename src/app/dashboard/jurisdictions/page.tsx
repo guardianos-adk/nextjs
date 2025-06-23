@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -53,7 +54,7 @@ export default function JurisdictionsPage() {
 
   const fetchGuardians = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/guardians");
+      const response = await fetch("', getApiUrl('/api/v1/')guardians");
       if (response.ok) {
         const data = await response.json();
         setGuardians(data);
@@ -65,7 +66,7 @@ export default function JurisdictionsPage() {
 
   const fetchActiveRequests = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/voting/active-requests");
+      const response = await fetch("', getApiUrl('/api/v1/')voting/active-requests");
       if (response.ok) {
         const data = await response.json();
         setActiveRequests(data);
@@ -77,7 +78,7 @@ export default function JurisdictionsPage() {
 
   const fetchComplianceUpdates = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/compliance/updates?days=30");
+      const response = await fetch("', getApiUrl('/api/v1/')compliance/updates?days=30");
       if (response.ok) {
         const data = await response.json();
         setComplianceUpdates(data.updates || []);
@@ -89,7 +90,7 @@ export default function JurisdictionsPage() {
 
   const fetchSanctionsStats = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/compliance/sanctions/statistics");
+      const response = await fetch("', getApiUrl('/api/v1/')compliance/sanctions/statistics");
       if (response.ok) {
         const data = await response.json();
         setSanctionsStats(data);
@@ -101,7 +102,7 @@ export default function JurisdictionsPage() {
 
   const fetchJurisdictions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/jurisdictions");
+      const response = await fetch("', getApiUrl('/api/v1/')jurisdictions");
       if (response.ok) {
         const data = await response.json();
         

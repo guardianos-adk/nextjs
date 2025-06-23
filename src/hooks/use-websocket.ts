@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { WebSocketEvent, EventType } from '@/lib/types';
 import { toast } from 'sonner';
+import { API_URLS } from '@/lib/api-urls';
 
 interface UseWebSocketOptions {
   autoConnect?: boolean;
@@ -61,7 +62,7 @@ export function useWebSocket(
 
   // Stabilize the WebSocket URL to prevent re-renders
   const WEBSOCKET_URL = useMemo(() => 
-    process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:8000', 
+    process.env.NEXT_PUBLIC_WEBSOCKET_URL || API_URLS.MAIN_API, 
     []
   );
 

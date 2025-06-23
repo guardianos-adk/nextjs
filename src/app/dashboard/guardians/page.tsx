@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -56,7 +57,7 @@ export default function GuardiansPage() {
 
   const fetchGuardians = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/guardians");
+      const response = await fetch("', getApiUrl('/api/v1/')guardians");
       if (response.ok) {
         const data = await response.json();
         setGuardians(data);

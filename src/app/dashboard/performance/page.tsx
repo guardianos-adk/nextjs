@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -38,7 +39,7 @@ export default function PerformancePage() {
 
   const fetchAgentPerformance = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/adk/agents/status");
+      const response = await fetch("', getApiUrl('/api/v1/')adk/agents/status");
       if (response.ok) {
         const data = await response.json();
         
@@ -90,7 +91,7 @@ export default function PerformancePage() {
 
   const fetchPerformanceMetrics = async () => {
     try {
-      const response = await fetch("http://localhost:8001/api/v1/metrics/performance");
+      const response = await fetch(getApiUrl('/api/v1/metrics/performance', true));
       if (response.ok) {
         const data = await response.json();
         setSystemMetrics(data);
@@ -102,7 +103,7 @@ export default function PerformancePage() {
 
   const fetchPerformanceReport = async () => {
     try {
-      const response = await fetch("http://localhost:8001/api/v1/sentinel/performance/report?days=7");
+      const response = await fetch(getApiUrl('/api/v1/sentinel/performance/report?days=7', true));
       if (response.ok) {
         const data = await response.json();
         setPerformanceReport(data);
@@ -137,7 +138,7 @@ export default function PerformancePage() {
 
   const handleRestartAgent = async (agentId: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/adk/agents/${agentId}/restart`, {
+      const response = await fetch(`', getApiUrl('/api/v1/')adk/agents/${agentId}/restart`, {
         method: "POST"
       });
       

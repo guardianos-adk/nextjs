@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { VotingStatusBoard } from "@/components/dashboard/voting-status";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -53,7 +54,7 @@ function VotingPageContent() {
 
   const checkBackendConnection = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/voting/active-requests");
+      const response = await fetch("', getApiUrl('/api/v1/')voting/active-requests");
       setIsConnected(response.ok);
     } catch (error) {
       console.error("Failed to check backend connection:", error);
@@ -73,7 +74,7 @@ function VotingPageContent() {
 
     setSubmitting(true);
     try {
-      const response = await fetch("http://localhost:8000/api/v1/voting/requests", {
+      const response = await fetch("', getApiUrl('/api/v1/')voting/requests", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

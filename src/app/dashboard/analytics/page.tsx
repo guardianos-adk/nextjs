@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from '@/lib/api-urls'
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -46,10 +47,10 @@ export default function AnalyticsPage() {
     try {
       // Fetch data from multiple endpoints
       const [fraudMetricsResponse, agentStatusResponse, votingHistoryResponse, guardianResponse] = await Promise.all([
-        fetch("http://localhost:8001/api/v1/metrics/current"),
-        fetch("http://localhost:8000/api/v1/adk/agents/status"),
-        fetch("http://localhost:8000/api/v1/voting/history?pageSize=100"),
-        fetch("http://localhost:8000/api/v1/guardians")
+        fetch(getApiUrl('/api/v1/metrics/current', true)),
+        fetch("', getApiUrl('/api/v1/')adk/agents/status"),
+        fetch("', getApiUrl('/api/v1/')voting/history?pageSize=100"),
+        fetch("', getApiUrl('/api/v1/')guardians")
       ]);
 
       // Process fraud metrics
