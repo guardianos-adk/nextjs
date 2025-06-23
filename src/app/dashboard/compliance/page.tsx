@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Search, AlertTriangle, CheckCircle, Clock, RefreshCw, Database, Shield, Globe, Wifi, WifiOff, Brain } from 'lucide-react'
 import { toast } from "sonner"
 import { TenthOpinionPanel } from "@/components/tenth-opinion/tenth-opinion-panel"

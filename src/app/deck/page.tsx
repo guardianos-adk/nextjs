@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Play, Shield, Vote, Eye, Zap, Users, Globe, TrendingUp, CheckCircle, ArrowRight, Activity, Target, GitBranch, Database, Layers, Bot, Brain, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Shield, Vote, Eye, Zap, Users, Globe, TrendingUp, CheckCircle, ArrowRight, Activity, Target, GitBranch, Database, Layers, Bot, Workflow, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -282,10 +282,10 @@ function SolutionSlide() {
               <div className="guardian-info-icon mb-4">
                 <Zap className="h-6 w-6" />
               </div>
-              <h3 className="guardian-heading-4 text-blue-600">Working Implementation</h3>
+              <h3 className="guardian-heading-4 text-blue-600">Production Deployment</h3>
               <p className="guardian-body text-muted-foreground">
-                Deployed on Sepolia testnet with real smart contracts, API endpoints, 
-                and a fully functional monitoring dashboard.
+                Deployed on Google Cloud Run with auto-scaling, Sepolia smart contracts, 
+                and real-time monitoring. Live at guardianos-api-753766936932.us-central1.run.app
               </p>
             </div>
           </motion.div>
@@ -861,7 +861,7 @@ function TenthOpinionSlide() {
           className="text-center mb-12"
         >
           <h2 className="guardian-heading-1 mb-6 flex items-center justify-center gap-4">
-            <Brain className="h-12 w-12 text-purple-600" />
+            <Workflow className="h-12 w-12 text-purple-600" />
             Tenth Opinion Protocol
           </h2>
           <p className="guardian-body-large text-muted-foreground max-w-3xl mx-auto">

@@ -23,7 +23,7 @@ import {
   Search,
   Database,
   HelpCircle,
-  Brain,
+  Workflow,
 } from "lucide-react";
 
 import { SearchForm } from "@/components/search-form";
@@ -120,7 +120,7 @@ const navigationData = {
         {
           title: "Tenth Opinion",
           url: "/dashboard/tenth-opinion",
-          icon: Brain,
+          icon: Workflow,
           badge: "advanced",
           description: "10-agent consensus for high-stakes decisions",
         },

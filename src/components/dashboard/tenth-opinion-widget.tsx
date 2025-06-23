@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
-  Brain, 
+  Workflow, 
   TrendingUp, 
   AlertTriangle, 
   CheckCircle, 
@@ -84,7 +84,7 @@ export function TenthOpinionWidget() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <Brain className="h-5 w-5 text-purple-600" />
+                <Workflow className="h-5 w-5 text-purple-600" />
               </div>
               <div>
                 <CardTitle className="text-lg">Tenth Opinion Protocol</CardTitle>
@@ -153,7 +153,7 @@ export function TenthOpinionWidget() {
           </div>
 
           {/* Quality Scores */}
-          {metrics && (
+          {metrics && metrics.quality_scores && (
             <div className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">Quality Metrics</p>
               <div className="space-y-2">
@@ -219,7 +219,7 @@ export function TenthOpinionWidget() {
             <Button variant="default" size="sm" className="flex-1" asChild>
               <Link href="/dashboard/compliance?tab=high-risk">
                 Analyze High-Risk
-                <Brain className="h-3 w-3 ml-1" />
+                <Workflow className="h-3 w-3 ml-1" />
               </Link>
             </Button>
           </div>

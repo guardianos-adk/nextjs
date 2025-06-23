@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
-  Brain, 
+  Workflow, 
   Shield, 
   AlertTriangle, 
   CheckCircle, 
@@ -165,7 +165,7 @@ export function TenthOpinionPanel({ transactionData, onDecision }: TenthOpinionP
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Brain className="h-6 w-6 text-purple-600" />
+            <Workflow className="h-6 w-6 text-purple-600" />
             <CardTitle>Tenth Opinion Protocol</CardTitle>
           </div>
           {status && (
@@ -206,7 +206,7 @@ export function TenthOpinionPanel({ transactionData, onDecision }: TenthOpinionP
               disabled={!status?.online || loading}
               variant={shouldAutoTrigger ? "default" : "outline"}
             >
-              <Brain className="h-4 w-4 mr-2" />
+              <Workflow className="h-4 w-4 mr-2" />
               Evaluate
             </Button>
           </div>
@@ -369,12 +369,14 @@ export function TenthOpinionPanel({ transactionData, onDecision }: TenthOpinionP
                   {(metrics.consensus_success_rate * 100).toFixed(1)}%
                 </span>
               </div>
-              <div>
-                <span className="text-muted-foreground">Accuracy:</span>
-                <span className="ml-2 font-medium">
-                  {(metrics.quality_scores.accuracy * 100).toFixed(1)}%
-                </span>
-              </div>
+              {metrics.quality_scores && (
+                <div>
+                  <span className="text-muted-foreground">Accuracy:</span>
+                  <span className="ml-2 font-medium">
+                    {(metrics.quality_scores.accuracy * 100).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

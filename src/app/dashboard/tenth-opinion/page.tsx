@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TenthOpinionPanel } from "@/components/tenth-opinion/tenth-opinion-panel";
+import { AgentExecutionViewer } from "@/components/tenth-opinion/agent-execution-viewer";
 import { 
   Breadcrumb, 
   BreadcrumbItem, 
@@ -22,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  Brain,
+  Workflow,
   Shield,
   Activity,
   AlertTriangle,
@@ -62,6 +63,12 @@ export default function TenthOpinionPage() {
   const [manualTxId, setManualTxId] = useState("");
   const [manualAmount, setManualAmount] = useState("");
   const [manualRiskScore, setManualRiskScore] = useState("");
+  
+  // Active evaluation tracking
+  const [activeEvaluation, setActiveEvaluation] = useState<{
+    id: string;
+    transactionData: any;
+  } | null>(null);
 
   // Load data on mount
   useEffect(() => {
@@ -214,7 +221,7 @@ export default function TenthOpinionPage() {
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Brain className="h-8 w-8 text-purple-600" />
+              <Workflow className="h-8 w-8 text-purple-600" />
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">Tenth Opinion Protocol</h1>
                 <p className="text-muted-foreground">
@@ -299,12 +306,89 @@ export default function TenthOpinionPage() {
             </div>
           )}
 
-          <Tabs defaultValue="evaluate" className="space-y-4">
+          <Tabs defaultValue="live-demo" className="space-y-4">
             <TabsList>
+              <TabsTrigger value="live-demo">🔴 Live Demo</TabsTrigger>
               <TabsTrigger value="evaluate">Evaluate Transaction</TabsTrigger>
               <TabsTrigger value="recent">Recent Evaluations</TabsTrigger>
               <TabsTrigger value="performance">Performance</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="live-demo" className="space-y-4">
+              {/* Live Demo for ADK Hackathon */}
+              <Alert className="border-purple-500 bg-purple-50">
+                <Workflow className="h-4 w-4" />
+                <AlertTitle>ADK Multi-Agent Demo</AlertTitle>
+                <AlertDescription>
+                  Watch 10 Google ADK agents collaborate in real-time to analyze a high-risk transaction
+                </AlertDescription>
+              </Alert>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Demo Transaction: Suspicious €150,000 Transfer</CardTitle>
+                  <CardDescription>
+                    This demo shows how multiple ADK agents work together to analyze a high-risk international transaction
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Transaction ID</p>
+                        <p className="font-mono">TX-DEMO-{Date.now()}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Amount</p>
+                        <p className="font-bold">€150,000</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Risk Score</p>
+                        <p className="font-bold text-orange-600">0.85 (High Risk)</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Type</p>
+                        <p>International Wire Transfer</p>
+                      </div>
+                    </div>
+
+                    <Button 
+                      size="lg" 
+                      className="w-full"
+                      onClick={() => {
+                        const demoTx = {
+                          id: `TX-DEMO-${Date.now()}`,
+                          amount: 150000,
+                          riskScore: 0.85,
+                          type: "International Wire Transfer",
+                          jurisdiction: "Netherlands"
+                        };
+                        setActiveEvaluation({
+                          id: `EVAL-${Date.now()}`,
+                          transactionData: demoTx
+                        });
+                      }}
+                    >
+                      <Workflow className="mr-2 h-5 w-5" />
+                      Start Multi-Agent Analysis
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {activeEvaluation && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AgentExecutionViewer
+                    evaluationId={activeEvaluation.id}
+                    transactionData={activeEvaluation.transactionData}
+                  />
+                </motion.div>
+              )}
+            </TabsContent>
 
             <TabsContent value="evaluate" className="space-y-4">
               {/* Manual Evaluation Form */}
@@ -422,14 +506,15 @@ export default function TenthOpinionPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Reliability</span>
-                            <span className="text-sm font-bold">
-                              {(metrics.quality_scores.reliability * 100).toFixed(1)}%
-                            </span>
-                          </div>
+                      {metrics.quality_scores ? (
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Reliability</span>
+                              <span className="text-sm font-bold">
+                                {(metrics.quality_scores.reliability * 100).toFixed(1)}%
+                              </span>
+                            </div>
                           <div className="w-full bg-muted rounded-full h-2">
                             <div 
                               className="h-2 rounded-full bg-blue-600"
@@ -468,6 +553,9 @@ export default function TenthOpinionPage() {
                           </div>
                         </div>
                       </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Loading quality metrics...</p>
+                      )}
                     </CardContent>
                   </Card>
 
