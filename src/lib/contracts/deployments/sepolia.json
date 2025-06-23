@@ -1,0 +1,10 @@
+{
+  "SeDeFramework": "0x4fc7714aAC94a83D829CE4Cd30f68075b594e11B",
+  "FraudSentinel": "0xFf0f28F105AB1df22667a4beE6f26b09c42680aa",
+  "PrivacyPool": "0x392469a668399A3c95293125D95588A1Bc8c8078",
+  "EIP7702Delegate": "0x281C43b6DB43e92A8D402F38e83e5eE888693204",
+  "chainId": 11155111,
+  "network": "sepolia",
+  "deployer": "0xb067fB16AFcABf8A8974a35CbCee243B8FDF0EA1",
+  "timestamp": "1750418772"
+}

@@ -4,8 +4,8 @@ import PrivacyPoolABI from './PrivacyPool.abi.json'
 import EIP7702DelegateABI from './EIP7702Delegate.abi.json'
 
 // Import deployment addresses
-import localhostDeployment from '../../../../contracts/deployments/localhost.json'
-import sepoliaDeployment from '../../../../contracts/deployments/sepolia.json'
+import localhostDeployment from './deployments/localhost.json'
+import sepoliaDeployment from './deployments/sepolia.json'
 
 export const contractAddresses = {
   localhost: {
