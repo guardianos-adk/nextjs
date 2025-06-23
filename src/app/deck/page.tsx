@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Play, Shield, Vote, Eye, Zap, Users, Globe, TrendingUp, CheckCircle, ArrowRight, Activity, Target, GitBranch, Database, Layers, Bot } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Shield, Vote, Eye, Zap, Users, Globe, TrendingUp, CheckCircle, ArrowRight, Activity, Target, GitBranch, Database, Layers, Bot, Brain, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -744,7 +744,7 @@ function TechnicalExcellenceSlide() {
             ADK Technical Integration
           </h2>
           <p className="guardian-body-large text-muted-foreground max-w-3xl mx-auto">
-            Deep integration with Google ADK v0.5.0 for intelligent agent orchestration
+            Deep integration with Google ADK v1.0.0 for intelligent agent orchestration
           </p>
         </motion.div>
 
@@ -762,7 +762,7 @@ function TechnicalExcellenceSlide() {
               <h3 className="guardian-heading-4">SequentialAgent Orchestration</h3>
               <p className="guardian-body text-muted-foreground mb-4">
                 ADKComplianceCoordinator inherits from SequentialAgent for workflow management.
-                Risk-based routing skips guardian consensus for low-risk transactions (&lt;0.4 score).
+                Risk-based routing: &lt;0.4 auto-approve, 0.4-0.7 standard flow, &gt;0.7 Tenth Opinion.
               </p>
               <div className="text-xs font-mono bg-slate-100 p-2 rounded">
                 TransactionMonitor → RiskAssessment → GuardianCouncil → PrivacyRevoker
@@ -842,6 +842,148 @@ function TechnicalExcellenceSlide() {
             <div className="text-2xl font-bold text-purple-600">5 Agents</div>
             <div className="text-sm text-muted-foreground mt-2">
               Decentralized reputation system
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </Slide>
+  );
+}
+
+function TenthOpinionSlide() {
+  return (
+    <Slide className="deck-slide-tenth-opinion bg-gradient-to-br from-purple-50 via-white to-slate-50/30">
+      <div className="max-w-6xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="text-center mb-12"
+        >
+          <h2 className="guardian-heading-1 mb-6 flex items-center justify-center gap-4">
+            <Brain className="h-12 w-12 text-purple-600" />
+            Tenth Opinion Protocol
+          </h2>
+          <p className="guardian-body-large text-muted-foreground max-w-3xl mx-auto">
+            4-phase, 10-agent consensus system for high-stakes compliance decisions
+          </p>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="space-y-6"
+          >
+            <div className="guardian-feature-card">
+              <div className="guardian-info-icon mb-4">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <h3 className="guardian-heading-4">Activation Criteria</h3>
+              <ul className="guardian-body text-muted-foreground space-y-2">
+                <li>• Transaction amount &gt; €75,000 (EU 5AMLD)</li>
+                <li>• Risk score &gt; 0.7 (ML model output)</li>
+                <li>• Manual escalation by guardian</li>
+              </ul>
+            </div>
+
+            <div className="guardian-feature-card">
+              <div className="guardian-info-icon mb-4">
+                <Activity className="h-6 w-6" />
+              </div>
+              <h3 className="guardian-heading-4">Performance Metrics</h3>
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">4.2s</div>
+                  <div className="text-xs text-muted-foreground">Avg. execution</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">94%</div>
+                  <div className="text-xs text-muted-foreground">Consensus rate</div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="space-y-4"
+          >
+            <h3 className="guardian-heading-3 mb-4">Protocol Phases</h3>
+            
+            <div className="guardian-info-card">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl font-bold text-purple-600">1</div>
+                <div>
+                  <h4 className="font-semibold">Blind Analysis (1.1s)</h4>
+                  <p className="text-sm text-muted-foreground">4 agents: Independent evaluation, no communication</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="guardian-info-card">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl font-bold text-purple-600">2</div>
+                <div>
+                  <h4 className="font-semibold">Informed Cross-Analysis (0.9s)</h4>
+                  <p className="text-sm text-muted-foreground">3 agents: Sequential review with meta-analysis</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="guardian-info-card">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl font-bold text-purple-600">3</div>
+                <div>
+                  <h4 className="font-semibold">Quality Assurance (1.0s)</h4>
+                  <p className="text-sm text-muted-foreground">2 agents: Bias detection, hallucination checking</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="guardian-info-card">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl font-bold text-purple-600">4</div>
+                <div>
+                  <h4 className="font-semibold">Final Synthesis (1.2s)</h4>
+                  <p className="text-sm text-muted-foreground">1 agent: Weighted decision, quality-adjusted confidence</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="mt-12 guardian-info-card bg-purple-50/50"
+        >
+          <h3 className="guardian-heading-4 mb-4">Technical Innovation</h3>
+          <div className="grid lg:grid-cols-3 gap-6 text-sm">
+            <div>
+              <h4 className="font-semibold mb-2">Bias Detection</h4>
+              <p className="text-muted-foreground">
+                7 cognitive biases: anchoring, confirmation, availability, 
+                groupthink, authority, recency, overconfidence
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Quality Metrics</h4>
+              <p className="text-muted-foreground">
+                Reliability scoring, objectivity assessment, dissenting 
+                opinion tracking, hallucination detection
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Regulatory Compliance</h4>
+              <p className="text-muted-foreground">
+                EU 5AMLD €75k threshold, FATF recommendations, 
+                BSA structuring detection, sanctions screening
+              </p>
             </div>
           </div>
         </motion.div>
@@ -1100,6 +1242,7 @@ export default function DeckPage() {
     { component: FeaturesSlide, title: "Features" },
     { component: ArchitectureSlide, title: "Architecture" },
     { component: TechnicalExcellenceSlide, title: "Technical Excellence" },
+    { component: TenthOpinionSlide, title: "Tenth Opinion Protocol" },
     { component: DashboardSlide, title: "Dashboard" },
     { component: ImpactSlide, title: "Impact" },
     { component: CallToActionSlide, title: "Call to Action" }
