@@ -16,8 +16,8 @@ import {
 
 // Real Backend Configuration
 const API_CONFIG = {
-  MAIN_API_BASE: 'http://localhost:8000/api/v1',
-  FRAUD_API_BASE: 'http://localhost:8001/api/v1',
+  MAIN_API_BASE: process.env.NEXT_PUBLIC_API_BASE_URL ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1` : 'http://localhost:8000/api/v1',
+  FRAUD_API_BASE: process.env.NEXT_PUBLIC_FRAUD_API_URL ? `${process.env.NEXT_PUBLIC_FRAUD_API_URL}/api/v1` : 'http://localhost:8001/api/v1',
   TIMEOUT: 30000, // Increased to 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
@@ -200,14 +200,16 @@ class ApiClient {
     const results = { main: false, fraud: false };
     
     try {
-      const mainResponse = await this.request('http://localhost:8000/health');
+      const mainUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      const mainResponse = await this.request(`${mainUrl}/health`);
       results.main = mainResponse.success;
     } catch (error) {
       console.warn('Main API health check failed:', error);
     }
 
     try {
-      const fraudResponse = await this.request('http://localhost:8001/health');
+      const fraudUrl = process.env.NEXT_PUBLIC_FRAUD_API_URL || 'http://localhost:8001';
+      const fraudResponse = await this.request(`${fraudUrl}/health`);
       results.fraud = fraudResponse.success;
     } catch (error) {
       console.warn('Fraud API health check failed:', error);
@@ -442,7 +444,10 @@ export class GuardianWebSocket {
 
   connect() {
     try {
-      this.ws = new WebSocket('ws://localhost:8001/ws/monitoring');
+      const wsUrl = process.env.NEXT_PUBLIC_FRAUD_API_URL 
+        ? process.env.NEXT_PUBLIC_FRAUD_API_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws/monitoring'
+        : 'ws://localhost:8001/ws/monitoring';
+      this.ws = new WebSocket(wsUrl);
       
       this.ws.onopen = () => {
         console.log('🔗 WebSocket connected to fraud monitoring');

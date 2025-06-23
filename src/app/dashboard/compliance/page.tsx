@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { getApiUrl } from '@/lib/api-urls'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -83,15 +84,15 @@ export default function CompliancePage() {
       setLoading(true)
       
       // Load recent regulations
-      const regulationsResponse = await fetch('http://localhost:8000/api/v1/compliance/regulations/recent?days=7')
+      const regulationsResponse = await fetch(getApiUrl('/api/v1/compliance/regulations/recent?days=7'))
       const regulationsData = await regulationsResponse.json()
       
       // Load compliance updates
-      const updatesResponse = await fetch('http://localhost:8000/api/v1/compliance/updates?days=30&limit=50')
+      const updatesResponse = await fetch(getApiUrl('/api/v1/compliance/updates?days=30&limit=50'))
       const updatesData = await updatesResponse.json()
       
       // Load sanctions statistics
-      const statsResponse = await fetch('http://localhost:8000/api/v1/compliance/sanctions/statistics')
+      const statsResponse = await fetch(getApiUrl('/api/v1/compliance/sanctions/statistics'))
       const statsData = await statsResponse.json()
       
       setComplianceData({
@@ -113,7 +114,7 @@ export default function CompliancePage() {
 
   const loadSyncStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/compliance/sync/status')
+      const response = await fetch(getApiUrl('/api/v1/compliance/sync/status'))
       const data = await response.json()
       setSyncStatus(data)
     } catch (error) {

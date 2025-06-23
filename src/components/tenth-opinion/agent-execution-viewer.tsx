@@ -141,7 +141,13 @@ export function AgentExecutionViewer({ evaluationId, transactionData }: AgentExe
 
   // WebSocket connection for real-time updates
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:8000/ws/tenth-opinion/${evaluationId}`);
+    // Get the base URL from window location or environment variable
+    const apiBaseUrl = typeof window !== 'undefined' 
+      ? (window.location.hostname === 'localhost' 
+        ? 'ws://localhost:8000' 
+        : 'wss://guardianos-api-753766936932.us-central1.run.app')
+      : 'ws://localhost:8000';
+    const ws = new WebSocket(`${apiBaseUrl}/ws/tenth-opinion/${evaluationId}`);
     wsRef.current = ws;
 
     ws.onopen = () => {

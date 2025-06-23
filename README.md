@@ -17,46 +17,45 @@ Multi-agent compliance monitoring dashboard for privacy-preserving blockchain pa
 
 ## System Overview
 
-GuardianOS implements selective disclosure for blockchain transactions using Google ADK agents:
+GuardianOS implements selective disclosure for blockchain transactions using Google ADK agents. The system routes transactions based on risk assessment:
 
 - **Low Risk (<0.4)**: Auto-approved
-- **Medium Risk (0.4-0.7)**: 5-agent workflow
-- **High Risk (>0.7 or >€75k)**: 10-agent Tenth Opinion Protocol
+- **Medium Risk (0.4-0.7)**: Standard agent workflow
+- **High Risk (>0.7 or >€75k)**: Tenth Opinion Protocol
 
 ## Key Features
 
 ### 1. Multi-Agent Compliance System
 
-The backend uses 14+ AI agents coordinated by Google ADK:
+The backend implements multiple AI agents coordinated by Google ADK:
 
-**Standard 5-Agent Workflow:**
-- TransactionMonitor - Blockchain event monitoring
-- RiskAssessment - ML-based risk scoring  
-- GuardianCouncil - 3-of-5 threshold voting
-- PrivacyRevoker - Selective de-anonymization
-- ComplianceLogger - Audit trail recording
+**Standard Agent Workflow:**
+- Transaction monitoring and validation
+- Risk assessment with ML models  
+- Guardian council voting (3-of-5 threshold)
+- Selective de-anonymization when required
+- Compliance logging and audit trails
 
-**Tenth Opinion Protocol (10 agents):**
-- Phase 1: Blind Analysis (4 agents, parallel)
-- Phase 2: Informed Cross-Analysis (3 agents, sequential)
-- Phase 3: Quality Assurance (2 agents, parallel)
-- Phase 4: Final Synthesis (1 agent)
+**Tenth Opinion Protocol:**
+- 10+ specialized agents across 4 phases
+- Parallel and sequential execution patterns
+- Bias detection and quality assurance
+- Used for high-risk or high-value transactions
 
 ### 2. Dashboard Pages
 
-- `/` - System overview and metrics
-- `/guardian-council` - Live voting status
-- `/agents` - AI agent performance monitoring
+Implemented pages found in `src/app/dashboard/`:
+- `/` - System overview with real-time metrics
+- `/agents` - AI agent status monitoring
 - `/compliance` - Regulatory compliance tracking
-- `/transactions` - Transaction analysis
 - `/tenth-opinion` - High-stakes decision protocol
-- `/fraud-monitoring` - Real-time fraud alerts
+- `/tenth-opinion-analytics` - Protocol performance analytics
 - `/blockchain` - Smart contract interactions
 
-### 3. Real-time Updates
+### 3. Real-time Features
 
-- WebSocket connections for live agent updates
-- Auto-refresh every 30-60 seconds
+- WebSocket connections via Socket.IO
+- Auto-refresh every 30 seconds (verified in code)
 - Connection status indicators
 - Toast notifications for errors
 
@@ -129,13 +128,6 @@ vercel
 docker build -t guardianos-frontend .
 docker run -p 3000:3000 guardianos-frontend
 ```
-
-## Performance Metrics
-
-- Transaction processing: ~3.26s average
-- Low-risk auto-approval: <2s
-- Tenth Opinion Protocol: ~4.2s
-- WebSocket latency: <100ms
 
 ## License
 
